@@ -25,7 +25,7 @@
 
 namespace archivingmod_assign;
 
-use local_archiving\driver\archivingmod_base;
+use local_archiving\driver\mod\task;
 
 // @codingStandardsIgnoreFile
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -34,27 +34,31 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 /**
  * Assignment activity archiving driver
  */
-class archivingmod extends archivingmod_base {
+class archivingmod extends \local_archiving\driver\mod\archivingmod {
 
-    /**
-     * @inheritDoc archivingmod_base::get_name()
-     */
     public static function get_name(): string {
         return get_string('pluginname', 'archivingmod_assign');
     }
 
-    /**
-     * @inheritDoc archivingmod_base::get_supported_activities()
-     */
     public static function get_supported_activities(): array {
         return ['assign'];
     }
 
-    /**
-     * @inheritDoc archivingmod_base::get_task_settings_form()
-     */
     public function get_job_create_form(string $handler, \cm_info $cminfo): \local_archiving\form\job_create_form {
         return new form\job_create_form($handler, $cminfo);
+    }
+
+    public function can_be_archived(): bool {
+        // TODO: Implement can_be_archived() method.
+        return true;
+    }
+
+    public function create_task(int $jobid, \stdClass $tasksettings): task {
+        // TODO: Implement create_task() method.
+    }
+
+    public function execute_task(task $task): void {
+        // TODO: Implement execute_task() method.
     }
 
 }
