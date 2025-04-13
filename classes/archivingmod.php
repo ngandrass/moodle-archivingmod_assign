@@ -40,6 +40,10 @@ class archivingmod extends \local_archiving\driver\mod\archivingmod {
         return get_string('pluginname', 'archivingmod_assign');
     }
 
+    public static function get_modname(): string {
+        return 'assign';
+    }
+
     public static function get_supported_activities(): array {
         return ['assign'];
     }
@@ -51,10 +55,6 @@ class archivingmod extends \local_archiving\driver\mod\archivingmod {
     public function can_be_archived(): bool {
         // TODO: Implement can_be_archived() method.
         return true;
-    }
-
-    public function create_task(int $jobid, \stdClass $tasksettings): task {
-        // TODO: Implement create_task() method.
     }
 
     public function execute_task(task $task): void {
