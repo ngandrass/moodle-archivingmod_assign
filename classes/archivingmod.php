@@ -25,7 +25,7 @@
 
 namespace archivingmod_assign;
 
-use local_archiving\driver\mod\task;
+use local_archiving\driver\mod\activity_archiving_task;
 
 // @codingStandardsIgnoreFile
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -57,7 +57,7 @@ class archivingmod extends \local_archiving\driver\mod\archivingmod {
         return true;
     }
 
-    public function execute_task(task $task): void {
+    public function execute_task(activity_archiving_task $task): void {
         // TODO: Implement execute_task() method.
     }
 
