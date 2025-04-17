@@ -36,27 +36,33 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
  */
 class archivingmod extends \local_archiving\driver\mod\archivingmod {
 
+    #[\Override]
     public static function get_name(): string {
         return get_string('pluginname', 'archivingmod_assign');
     }
 
+    #[\Override]
     public static function get_plugname(): string {
         return 'assign';
     }
 
+    #[\Override]
     public static function get_supported_activities(): array {
         return ['assign'];
     }
 
+    #[\Override]
     public function get_job_create_form(string $handler, \cm_info $cminfo): \local_archiving\form\job_create_form {
         return new form\job_create_form($handler, $cminfo);
     }
 
+    #[\Override]
     public function can_be_archived(): bool {
         // TODO: Implement can_be_archived() method.
         return true;
     }
 
+    #[\Override]
     public function execute_task(activity_archiving_task $task): void {
         // TODO: Implement execute_task() method.
     }
