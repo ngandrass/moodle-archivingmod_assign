@@ -25,7 +25,7 @@
 
 namespace archivingmod_assign;
 
-use local_archiving\driver\mod\activity_archiving_task;
+use local_archiving\activity_archiving_task;
 
 // @codingStandardsIgnoreFile
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -34,7 +34,7 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 /**
  * Assignment activity archiving driver
  */
-class archivingmod extends \local_archiving\driver\mod\archivingmod {
+class archivingmod extends \local_archiving\driver\archivingmod {
 
     #[\Override]
     public static function get_name(): string {
