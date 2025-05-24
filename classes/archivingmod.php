@@ -37,16 +37,6 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 class archivingmod extends \local_archiving\driver\archivingmod {
 
     #[\Override]
-    public static function get_name(): string {
-        return get_string('pluginname', 'archivingmod_assign');
-    }
-
-    #[\Override]
-    public static function get_plugname(): string {
-        return 'assign';
-    }
-
-    #[\Override]
     public static function get_supported_activities(): array {
         return ['assign'];
     }
