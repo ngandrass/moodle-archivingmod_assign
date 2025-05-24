@@ -26,3 +26,7 @@
 
 // Common.
 $string['pluginname'] = 'Assignment';
+
+// Settings.
+$string['setting_enabled'] = 'Enabled';
+$string['setting_enabled_desc'] = 'Enables or disables this activity archiving driver. If disabled, no activities can be archived using this driver.';

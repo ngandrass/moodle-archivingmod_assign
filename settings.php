@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 global $DB;
 
 if ($hassiteconfig) {
-    $settings = new admin_settingpage('archivingmod_assign_settings', new lang_string('pluginname', 'archivingmod_assign'));
+    $settings = new admin_settingpage('archivingmod_assign', new lang_string('pluginname', 'archivingmod_assign'));
 
     // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
     if ($ADMIN->fulltree) {
@@ -36,6 +36,13 @@ if ($hassiteconfig) {
         $settings->add(new admin_setting_heading('archivingmod_assign/header_docs',
             null,
             'TODO: Write something nice here ;)'
+        ));
+
+        // Enabled.
+        $settings->add(new admin_setting_configcheckbox('archivingmod_assign/enabled',
+            get_string('setting_enabled', 'archivingmod_assign'),
+            get_string('setting_enabled_desc', 'archivingmod_assign'),
+            '1'
         ));
     }
 
