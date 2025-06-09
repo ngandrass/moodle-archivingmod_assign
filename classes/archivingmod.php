@@ -58,46 +58,37 @@ class archivingmod extends \local_archiving\driver\archivingmod {
     #[\Override]
     public function execute_task(activity_archiving_task $task): void {
         // TODO: Implement execute_task() method.
-        try {
-            if ($task->get_status(usecached: true) == activity_archiving_task_status::UNINITIALIZED) {
-                $task->set_status(activity_archiving_task_status::CREATED);
-            }
+        if ($task->get_status(usecached: true) == activity_archiving_task_status::UNINITIALIZED) {
+            $task->set_status(activity_archiving_task_status::CREATED);
+        }
 
-            if ($task->get_status(usecached: true) == activity_archiving_task_status::CREATED) {
-                $task->set_status(activity_archiving_task_status::AWAITING_PROCESSING);
-            }
+        if ($task->get_status(usecached: true) == activity_archiving_task_status::CREATED) {
+            $task->set_status(activity_archiving_task_status::AWAITING_PROCESSING);
+        }
 
-            if ($task->get_status(usecached: true) == activity_archiving_task_status::AWAITING_PROCESSING) {
-                $task->set_status(activity_archiving_task_status::RUNNING);
-                throw new yield_exception();
-            }
+        if ($task->get_status(usecached: true) == activity_archiving_task_status::AWAITING_PROCESSING) {
+            $task->set_status(activity_archiving_task_status::RUNNING);
+            throw new yield_exception();
+        }
 
-            if ($task->get_status(usecached: true) == activity_archiving_task_status::RUNNING) {
-                // Create a stub file...
-                $fs = get_file_storage();
-                $file = $fs->create_file_from_string([
-                    'contextid' => context_system::instance()->id,
-                    'component' => 'archivingmod_assign',
-                    'filearea' => 'draft',
-                    'itemid' => 0,
-                    'filepath' => '/',
-                    'filename' => 'artifact.txt',
-                ], "Hello world at ".userdate(time()));
-                $task->link_artifact($file, takeownership: true);
+        if ($task->get_status(usecached: true) == activity_archiving_task_status::RUNNING) {
+            // Create a stub file...
+            $fs = get_file_storage();
+            $file = $fs->create_file_from_string([
+                'contextid' => context_system::instance()->id,
+                'component' => 'archivingmod_assign',
+                'filearea' => 'draft',
+                'itemid' => 0,
+                'filepath' => '/',
+                'filename' => 'artifact.txt',
+            ], "Hello world at ".userdate(time()));
+            $task->link_artifact($file, takeownership: true);
 
-                $task->set_status(activity_archiving_task_status::FINALIZING);
-            }
+            $task->set_status(activity_archiving_task_status::FINALIZING);
+        }
 
-            if ($task->get_status(usecached: true) == activity_archiving_task_status::FINALIZING) {
-                $task->set_status(activity_archiving_task_status::FINISHED);
-            }
-        } catch (\Exception $e) {
-            // Catch the yield silently and let everything else bubble up.
-            if (!$e instanceof yield_exception) {
-                $task->set_status(activity_archiving_task_status::FAILED);
-                $task->get_logger()->error($e->getMessage());
-                throw $e;
-            }
+        if ($task->get_status(usecached: true) == activity_archiving_task_status::FINALIZING) {
+            $task->set_status(activity_archiving_task_status::FINISHED);
         }
     }
 
