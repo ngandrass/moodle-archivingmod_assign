@@ -25,7 +25,10 @@
 
 namespace archivingmod_assign;
 
+use context_system;
 use local_archiving\activity_archiving_task;
+use local_archiving\exception\yield_exception;
+use local_archiving\type\activity_archiving_task_status;
 
 // @codingStandardsIgnoreFile
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -55,6 +58,48 @@ class archivingmod extends \local_archiving\driver\archivingmod {
     #[\Override]
     public function execute_task(activity_archiving_task $task): void {
         // TODO: Implement execute_task() method.
+        $originstatus = $task->get_status();
+        $status = $originstatus;
+
+        try {
+            if ($status == activity_archiving_task_status::UNINITIALIZED) {
+                $status = activity_archiving_task_status::CREATED;
+            }
+
+            if ($status == activity_archiving_task_status::CREATED) {
+                $status = activity_archiving_task_status::AWAITING_PROCESSING;
+            }
+
+            if ($status == activity_archiving_task_status::AWAITING_PROCESSING) {
+                $status = activity_archiving_task_status::RUNNING;
+                throw new yield_exception();
+            }
+
+            if ($status == activity_archiving_task_status::RUNNING) {
+                // Create a stub file...
+                $fs = get_file_storage();
+                $file = $fs->create_file_from_string([
+                    'contextid' => context_system::instance()->id,
+                    'component' => 'archivingmod_assign',
+                    'filearea' => 'draft',
+                    'itemid' => 0,
+                    'filepath' => '/',
+                    'filename' => 'artifact.txt',
+                ], "Hello world at ".userdate(time()));
+                $task->link_artifact($file, takeownership: true);
+
+                $status = activity_archiving_task_status::FINALIZING;
+            }
+
+            if ($status == activity_archiving_task_status::FINALIZING) {
+                $status = activity_archiving_task_status::FINISHED;
+            }
+        } finally {
+            // Update task status if it has changed.
+            if ($status != $originstatus) {
+                $task->set_status($status);
+            }
+        }
     }
 
 }
