@@ -29,6 +29,7 @@ use context_system;
 use local_archiving\activity_archiving_task;
 use local_archiving\exception\yield_exception;
 use local_archiving\type\activity_archiving_task_status;
+use local_archiving\type\task_content_metadata;
 
 // @codingStandardsIgnoreFile
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -90,6 +91,12 @@ class archivingmod extends \local_archiving\driver\archivingmod {
         if ($task->get_status(usecached: true) == activity_archiving_task_status::FINALIZING) {
             $task->set_status(activity_archiving_task_status::FINISHED);
         }
+    }
+
+    #[\Override]
+    public function get_task_content_metadata(activity_archiving_task $task): array {
+        // TODO: Implement get_task_content_metadata() method.
+        return [];
     }
 
 }
