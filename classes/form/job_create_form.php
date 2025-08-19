@@ -34,4 +34,23 @@ require_once($CFG->dirroot.'/lib/formslib.php'); // @codeCoverageIgnore
  */
 class job_create_form extends \local_archiving\form\job_create_form {
 
+    /**
+     * Defines header elements in form
+     *
+     * @return void
+     * @throws \coding_exception
+     */
+    #[\Override]
+    protected function definition_header(): void {
+        global $OUTPUT;
+
+        parent::definition_header();
+
+        // Add WIP warning.
+        $this->_form->addElement('html', $OUTPUT->notification(
+            'The assignment archving driver is not yet implemented! It will only return a stub file.',
+            \core\output\notification::NOTIFY_WARNING
+        ));
+    }
+
 }
