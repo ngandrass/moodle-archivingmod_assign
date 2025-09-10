@@ -29,6 +29,7 @@ use context_system;
 use local_archiving\activity_archiving_task;
 use local_archiving\exception\yield_exception;
 use local_archiving\type\activity_archiving_task_status;
+use local_archiving\type\cm_state_fingerprint;
 use local_archiving\type\task_content_metadata;
 
 // @codingStandardsIgnoreFile
@@ -97,6 +98,24 @@ class archivingmod extends \local_archiving\driver\archivingmod {
     public function get_task_content_metadata(activity_archiving_task $task): array {
         // TODO: Implement get_task_content_metadata() method.
         return [];
+    }
+
+
+    /**
+     * Creates a new fingerprint for the current state of the referenced course
+     * module.
+     *
+     * Those fingerprints are used to determine if the course module has changed
+     * since the last archive job. For information on cm_state_fingerprints and
+     * their creation, see the cm_state_fingerprint class documentation.
+     *
+     * @return cm_state_fingerprint Fingerprint for the current state of the
+     * referenced course module
+     * @throws \JsonException
+     * @throws \coding_exception
+     */
+    public function fingerprint(): cm_state_fingerprint {
+        return cm_state_fingerprint::generate(['foo' => 'bar']); // TODO (MDL-0): Implement fingerprinting.
     }
 
 }
