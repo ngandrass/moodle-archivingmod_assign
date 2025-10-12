@@ -2,6 +2,7 @@
 
 ## Version X.Y.Z (YYYYMMDDXX)
 
+- Ensure Moodle 5.1 compatibility
 - Refactor code to comply with new Moodle coding standard v3.6
 - Add stub implementation for cm state fingerprinting
 - Add Moodle plugin CI for all supported Moodle versions
