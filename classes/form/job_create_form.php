@@ -26,14 +26,13 @@ namespace archivingmod_assign\form;
 
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
-require_once($CFG->dirroot.'/lib/formslib.php'); // @codeCoverageIgnore
+require_once($CFG->dirroot . '/lib/formslib.php'); // @codeCoverageIgnore
 
 
 /**
  * Form to initiate a new assignment archive job
  */
 class job_create_form extends \local_archiving\form\job_create_form {
-
     /**
      * Defines header elements in form
      *
@@ -52,5 +51,4 @@ class job_create_form extends \local_archiving\form\job_create_form {
             \core\output\notification::NOTIFY_WARNING
         ));
     }
-
 }

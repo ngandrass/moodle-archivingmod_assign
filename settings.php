@@ -33,13 +33,15 @@ if ($hassiteconfig) {
     // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
     if ($ADMIN->fulltree) {
         // Descriptive text.
-        $settings->add(new admin_setting_heading('archivingmod_assign/header_docs',
+        $settings->add(new admin_setting_heading(
+            'archivingmod_assign/header_docs',
             null,
             'TODO: Write something nice here ;)'
         ));
 
         // Enabled.
-        $settings->add(new admin_setting_configcheckbox('archivingmod_assign/enabled',
+        $settings->add(new admin_setting_configcheckbox(
+            'archivingmod_assign/enabled',
             get_string('setting_enabled', 'archivingmod_assign'),
             get_string('setting_enabled_desc', 'archivingmod_assign'),
             '1'

@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -30,9 +29,8 @@ use local_archiving\activity_archiving_task;
 use local_archiving\exception\yield_exception;
 use local_archiving\type\activity_archiving_task_status;
 use local_archiving\type\cm_state_fingerprint;
-use local_archiving\type\task_content_metadata;
 
-// @codingStandardsIgnoreFile
+// phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
 
@@ -40,7 +38,6 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
  * Assignment activity archiving driver
  */
 class archivingmod extends \local_archiving\driver\archivingmod {
-
     #[\Override]
     public static function get_supported_activities(): array {
         return ['assign'];
@@ -53,13 +50,13 @@ class archivingmod extends \local_archiving\driver\archivingmod {
 
     #[\Override]
     public function can_be_archived(): bool {
-        // TODO: Implement can_be_archived() method.
+        // TODO (MDL-0): Implement can_be_archived() method.
         return true;
     }
 
     #[\Override]
     public function execute_task(activity_archiving_task $task): void {
-        // TODO: Implement execute_task() method.
+        // TODO (MDL-0): Implement execute_task() method.
         if ($task->get_status(usecached: true) == activity_archiving_task_status::UNINITIALIZED) {
             $task->set_status(activity_archiving_task_status::CREATED);
         }
@@ -83,7 +80,7 @@ class archivingmod extends \local_archiving\driver\archivingmod {
                 'itemid' => 0,
                 'filepath' => '/',
                 'filename' => 'artifact.txt',
-            ], "Hello world at ".userdate(time()));
+            ], "Hello world at " . userdate(time()));
             $task->link_artifact($file, takeownership: true);
 
             $task->set_status(activity_archiving_task_status::FINALIZING);
@@ -96,10 +93,9 @@ class archivingmod extends \local_archiving\driver\archivingmod {
 
     #[\Override]
     public function get_task_content_metadata(activity_archiving_task $task): array {
-        // TODO: Implement get_task_content_metadata() method.
+        // TODO (MDL-0): Implement get_task_content_metadata() method.
         return [];
     }
-
 
     /**
      * Creates a new fingerprint for the current state of the referenced course
@@ -117,5 +113,4 @@ class archivingmod extends \local_archiving\driver\archivingmod {
     public function fingerprint(): cm_state_fingerprint {
         return cm_state_fingerprint::generate(['foo' => 'bar']); // TODO (MDL-0): Implement fingerprinting.
     }
-
 }
