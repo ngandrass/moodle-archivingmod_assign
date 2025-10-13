@@ -25,11 +25,11 @@
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
 $plugin->component = 'archivingmod_assign';
-$plugin->release = '0.0.1';
-$plugin->version = 2025081900;
+$plugin->release = '0.0.2';
+$plugin->version = 2025101300;
 $plugin->requires = 2024100700;
 $plugin->supported = [405, 501];
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->dependencies = [
-    'local_archiving' => 2025081900,
+    'local_archiving' => 2025101200,
 ];
