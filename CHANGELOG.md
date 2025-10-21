@@ -1,5 +1,10 @@
 # Changelog
 
+## Version X.Y.Z (YYYYMMDDXX)
+
+- Add Moodle privacy API stub provider
+
+
 ## Version 0.0.2 (2025101300)
 
 - Ensure Moodle 5.1 compatibility

@@ -26,6 +26,7 @@
 
 // Common.
 $string['pluginname'] = 'Assignment';
+$string['privacy:metadata'] = 'TODO';
 
 // Settings.
 $string['setting_enabled'] = 'Enabled';
