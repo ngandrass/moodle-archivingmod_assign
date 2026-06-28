@@ -18,9 +18,11 @@
  * Plugin administration pages are defined here
  *
  * @package     archivingmod_assign
- * @copyright   2025 Niels Gandraß <niels@gandrass.de>
+ * @copyright   2026 Niels Gandraß <niels@gandrass.de>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use local_archiving\local\admin\setting\admin_setting_webservice_enabler;
 
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
@@ -45,6 +47,38 @@ if ($hassiteconfig) {
             get_string('setting_enabled', 'archivingmod_assign'),
             get_string('setting_enabled_desc', 'archivingmod_assign'),
             '1'
+        ));
+
+        // Worker service.
+        $settings->add(new admin_setting_heading(
+            'archivingmod_assign/header_archive_worker',
+            get_string('setting_header_archive_worker', 'archivingmod_assign'),
+            get_string('setting_header_archive_worker_desc', 'archivingmod_assign')
+        ));
+
+        // Worker service: Global webservice settings.
+        $settings->add(new admin_setting_webservice_enabler(
+            'archivingmod_assign/webservice_enabler',
+            get_string('setting_webservice_enabler', 'archivingmod_assign'),
+            get_string('setting_webservice_enabler_desc', 'archivingmod_assign')
+        ));
+
+        // Worker service: URL.
+        $settings->add(new admin_setting_configtext(
+            'archivingmod_assign/worker_url',
+            get_string('setting_worker_url', 'archivingmod_assign'),
+            get_string('setting_worker_url_desc', 'archivingmod_assign'),
+            '',
+            PARAM_TEXT
+        ));
+
+        // Worker service: Custom Moodle base URL.
+        $settings->add(new admin_setting_configtext(
+            'archivingmod_assign/internal_wwwroot',
+            get_string('setting_internal_wwwroot', 'archivingmod_assign'),
+            get_string('setting_internal_wwwroot_desc', 'archivingmod_assign'),
+            '',
+            PARAM_TEXT
         ));
     }
 
