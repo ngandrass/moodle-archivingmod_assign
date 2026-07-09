@@ -76,7 +76,8 @@ class assignment_manager {
         // Get assignment.
         $assignment = new \assign($ctx, $cm, $course);
         if ($assignment->get_course_module()->id != $this->cmid) {
-            throw new \moodle_exception('assignmentnotfound', 'local_archiving');
+            // We should never get here but let's be sure.
+            throw new \moodle_exception('assignmentnotfound', 'local_archiving'); // @codeCoverageIgnore
         }
 
         $this->course = $course;
@@ -94,6 +95,21 @@ class assignment_manager {
      */
     public static function from_context(\context_module $ctx): self {
         return new self($ctx->get_course_context()->instanceid, $ctx->instanceid);
+    }
+
+    /**
+     * Creats a new submission report handler for this assignment.
+     *
+     * @return submission_report Submission report generator for this assignment.
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function submission_report(): submission_report {
+        return new submission_report(
+            course: $this->course,
+            cm: $this->cm,
+            assignment: $this->assignment,
+        );
     }
 
     /**
