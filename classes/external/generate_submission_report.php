@@ -28,6 +28,7 @@ namespace archivingmod_assign\external;
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
 
+use archivingmod_assign\assignment_manager;
 use archivingmod_assign\local\type\attachment_type;
 use archivingmod_assign\local\type\webservice_status;
 use core_external\external_api;
@@ -167,8 +168,29 @@ class generate_submission_report extends external_api {
             return ['status' => webservice_status::E_ACCESS_DENIED->name];
         }
 
-        // TODO: That's the complicated part ;D
+        // Ensure that we are supposed to handle this task.
+        if ($task->get_archivingmodname() !== 'assign') {
+            return ['status' => webservice_status::E_INVALID_PARAM->name];
+        }
 
+        $manager = assignment_manager::from_context($task->get_context());
+
+        // Ensure that the submission exists.
+        if (!$manager->submission_exists($params['submissionid'])) {
+            return ['status' => webservice_status::E_SUBMISSION_NOT_FOUND->name];
+        }
+
+        // Forcefully set URL in $PAGE to the webservice handler to prevent future warnings.
+        $PAGE->set_url(new \moodle_url('/webservice/rest/server.php', [
+            'wsfunction' => 'archivingmod_assign_generate_submission_report',
+        ]));
+
+        // Generate submission report and attachments data.
+        $res = [
+            'submissionid' => $params['submissionid'],
+            'report' => $manager->submission_report()->generate_full_page($params['submissionid']),
+            'attachments' => $manager->get_submission_attachments_metadata($params['submissionid']),
+        ];
 
         // Log and return response.
         $task->get_logger()->debug("Generated report for assignment submission {$params['submissionid']}");
