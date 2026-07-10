@@ -31,5 +31,5 @@ $plugin->requires = 2024100700;
 $plugin->supported = [405, 502]; // X meta-supported-moodle{4.5 - 5.2} meta-supported-php{8.1 - 8.4}.
 $plugin->maturity = MATURITY_ALPHA;
 $plugin->dependencies = [
-    'local_archiving' => 2025101200,
+    'local_archiving' => 2026071000,
 ];
