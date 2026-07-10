@@ -185,7 +185,7 @@ class assignment_manager {
                     s.timecreated, s.timemodified, s.timestarted,
                     u.username, u.firstname, u.lastname, u.idnumber
              FROM {assign_submission} s LEFT JOIN {user} u ON s.userid = u.id
-             WHERE status = :status AND s.assignment = :assignemntid " . ($filterwhereclause ?? ''),
+             WHERE status = :status AND s.assignment = :assignmentid " . ($filterwhereclause ?? ''),
             [
                 'status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
                 'assignmentid' => $this->assignment->get_instance()->id,
