@@ -19,6 +19,8 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
+require_once($CFG->dirroot . '/mod/assign/feedback/file/locallib.php');
+require_once($CFG->dirroot . '/mod/assign/feedback/editpdf/locallib.php');
 
 
 /**
@@ -30,17 +32,43 @@ require_once($CFG->dirroot . '/mod/assign/locallib.php');
  */
 class archivingmod_assign_generator extends \testing_data_generator {
     /**
+     * Retrieves the full path to a fixture file based on the given fixture
+     * filename
+     *
+     * @param string $filename Filename of the fixture to get, relative to the
+     * tests/fixtures directory
+     * @param bool $fullpath Whether to return the full path or just the relative path
+     * @return string Full path to the fixture file
+     */
+    public static function get_fixture_file_path(string $filename, bool $fullpath = false): string {
+        global $CFG;
+        return ($fullpath ? rtrim($CFG->dirroot, '/') . '/' : '') .
+               'local/archiving/driver/mod/assign/tests/fixtures/' .
+               ltrim($filename, '/');
+    }
+
+    /**
      * Creates a test course with an assignment activity, a teacher, and a student.
      *
-     * Both users are enrolled in the course. The assignment has online text
-     * submissions enabled and no submission drafts.
+     * Both users are enrolled in the course. Submission drafts are disabled.
+     * Which submission and feedback plugins are enabled is controlled by the
+     * parameters.
      *
+     * @param bool $onlinetextenabled Enable the online text submission plugin
+     * @param bool $filesubmissionenabled Enable the file submission plugin
+     * @param bool $feedbackfileenabled Enable the feedback file plugin
+     * @param bool $feedbackeditpdfenabled Enable the feedback editpdf plugin
      * @return \stdClass Object with properties: course, cm, assignment, teacher, student
      * @throws \coding_exception
      * @throws \dml_exception
      * @throws \moodle_exception
      */
-    public function create_assignment(): \stdClass {
+    public function create_assignment(
+        bool $onlinetextenabled = true,
+        bool $filesubmissionenabled = false,
+        bool $feedbackfileenabled = false,
+        bool $feedbackeditpdfenabled = false,
+    ): \stdClass {
         // Create entities.
         $course = $this->create_course();
         $teacher = $this->create_user();
@@ -54,8 +82,13 @@ class archivingmod_assign_generator extends \testing_data_generator {
         $assigngen = $this->get_plugin_generator('mod_assign');
         $assignment = $assigngen->create_instance([
             'course'                              => $course->id,
-            'assignsubmission_onlinetext_enabled' => 1,
             'submissiondrafts'                    => 0,
+            'assignsubmission_onlinetext_enabled' => (int) $onlinetextenabled,
+            'assignsubmission_file_enabled'       => (int) $filesubmissionenabled,
+            'assignsubmission_file_maxfiles'      => 1,
+            'assignsubmission_file_maxsizebytes'  => 0,
+            'assignfeedback_file_enabled'         => (int) $feedbackfileenabled,
+            'assignfeedback_editpdf_enabled'      => (int) $feedbackeditpdfenabled,
         ]);
 
         // Build response.
@@ -71,33 +104,50 @@ class archivingmod_assign_generator extends \testing_data_generator {
     }
 
     /**
-     * Creates a test course with an assignment activity and one submitted online
-     * text submission from the student.
+     * Creates a test course with an assignment and a single submitted submission.
      *
-     * Internally calls {@see create_assignment()} and adds a submission on top.
+     * The $submissiondata array is passed directly to the mod_assign generator's
+     * create_submission(), which dispatches to sub-plugin generators based on the
+     * keys present (e.g. 'onlinetext', 'file'). The matching plugin(s) must be
+     * enabled via the corresponding flag parameters.
      *
-     * @param string|null $submissiontext Optional text to use for the submission. If null, a default text will be used.
+     * @param array $submissiondata Data for the submission (plugin-specific keys + optional 'status')
+     * @param bool $onlinetextenabled Enable the online text submission plugin
+     * @param bool $filesubmissionenabled Enable the file submission plugin
+     * @param bool $feedbackfileenabled Enable the feedback file plugin
+     * @param bool $feedbackeditpdfenabled Enable the feedback editpdf plugin
      * @return \stdClass Object with properties: course, cm, assignment, teacher, student, submission
      * @throws \coding_exception
      * @throws \dml_exception
      * @throws \moodle_exception
      */
-    public function create_assignment_with_text_submission(?string $submissiontext = null): \stdClass {
+    public function create_assignment_with_submission(
+        array $submissiondata,
+        bool $onlinetextenabled = true,
+        bool $filesubmissionenabled = false,
+        bool $feedbackfileenabled = false,
+        bool $feedbackeditpdfenabled = false,
+    ): \stdClass {
         global $DB;
 
-        $testdata = $this->create_assignment();
+        // Create empty assignment.
+        $testdata = $this->create_assignment(
+            $onlinetextenabled,
+            $filesubmissionenabled,
+            $feedbackfileenabled,
+            $feedbackeditpdfenabled,
+        );
 
-        // Add a text submission to the prepared assignment.
+        // Add submission.
         /** @var \mod_assign_generator $assigngen */
         $assigngen = $this->get_plugin_generator('mod_assign');
-        $assigngen->create_submission([
-            'cmid'       => $testdata->assignment->cmid,
-            'userid'     => $testdata->student->id,
-            'onlinetext' => $submissiontext ?? 'Test submission text.',
-            'status'     => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
-        ]);
+        $assigngen->create_submission(array_merge(
+            ['status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED],
+            $submissiondata,
+            ['cmid' => $testdata->assignment->cmid, 'userid' => $testdata->student->id],
+        ));
 
-        // Prepare response.
+        // Build response.
         $submission = $DB->get_record(
             'assign_submission',
             ['assignment' => $testdata->assignment->id, 'userid' => $testdata->student->id],
@@ -113,5 +163,163 @@ class archivingmod_assign_generator extends \testing_data_generator {
             'student'    => $testdata->student,
             'submission' => $submission,
         ];
+    }
+
+    /**
+     * Creates a test course with an assignment activity and one submitted online
+     * text submission from the student.
+     *
+     * @param string|null $submissiontext Optional text to use for the submission. If null, a default text will be used.
+     * @return \stdClass Object with properties: course, cm, assignment, teacher, student, submission
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function create_assignment_with_text_submission(?string $submissiontext = null): \stdClass {
+        return $this->create_assignment_with_submission([
+            'onlinetext' => $submissiontext ?? 'Test submission text.',
+        ]);
+    }
+
+    /**
+     * Creates a fully-featured assignment with a submission that uses all submission
+     * and feedback plugins, plus all three file attachment types.
+     *
+     * Useful as a one-call setup for tests that need every attachment type present.
+     *
+     * @return \stdClass Object with properties: course, cm, assignment, teacher, student,
+     *                   submission, introfile, feedbackfile, annotatedfile
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function create_fully_featured_assignment_with_submission(): \stdClass {
+        $testdata = $this->create_assignment_with_submission(
+            submissiondata: [
+                'onlinetext' => 'Test submission text.',
+                'file'       => $this::get_fixture_file_path('submissionsample01.txt'),
+            ],
+            onlinetextenabled: true,
+            filesubmissionenabled: true,
+            feedbackfileenabled: true,
+            feedbackeditpdfenabled: true,
+        );
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+
+        $introfile = $this->add_intro_attachment($assign);
+        $feedbackfile = $this->add_grader_feedback_file($assign, $testdata->student->id);
+        $annotatedfile = $this->add_grader_annotated_file($assign, $testdata->student->id);
+
+        return (object) array_merge((array) $testdata, [
+            'introfile'     => $introfile,
+            'feedbackfile'  => $feedbackfile,
+            'annotatedfile' => $annotatedfile,
+        ]);
+    }
+
+    /**
+     * Plants a file in the assignment intro attachment filearea (PROVIDED_ASSIGNMENT_FILE).
+     *
+     * @param \assign $assign Assignment instance
+     * @param string $filename Name for the planted file
+     * @param string $filecontent Synthetic file content
+     * @return \stored_file
+     * @throws \file_exception
+     * @throws \stored_file_creation_exception
+     */
+    public function add_intro_attachment(
+        \assign $assign,
+        string $filename = 'intro_attachment.pdf',
+        string $filecontent = 'intro file content',
+    ): \stored_file {
+        $contextid = $assign->get_context()->id;
+
+        return get_file_storage()->create_file_from_string(
+            [
+                'contextid' => $contextid,
+                'component' => 'mod_assign',
+                'filearea'  => ASSIGN_INTROATTACHMENT_FILEAREA,
+                'itemid'    => 0,
+                'filepath'  => '/',
+                'filename'  => $filename,
+            ],
+            $filecontent
+        );
+    }
+
+    /**
+     * Plants a file in the grader feedback file area (GRADER_FEEDBACK_FILE).
+     *
+     * Creates a grade record for the student if one does not already exist.
+     *
+     * @param \assign $assign Assignment instance
+     * @param int $studentid ID of the student whose grade record to use
+     * @param string $filename Name for the planted file
+     * @param string $filecontent Synthetic file content
+     * @return \stored_file
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \file_exception
+     * @throws \moodle_exception
+     * @throws \stored_file_creation_exception
+     */
+    public function add_grader_feedback_file(
+        \assign $assign,
+        int $studentid,
+        string $filename = 'feedback.pdf',
+        string $filecontent = 'feedback file content',
+    ): \stored_file {
+        $grade = $assign->get_user_grade($studentid, true);
+
+        return get_file_storage()->create_file_from_string(
+            [
+                'contextid' => $assign->get_context()->id,
+                'component' => 'assignfeedback_file',
+                'filearea'  => ASSIGNFEEDBACK_FILE_FILEAREA,
+                'itemid'    => $grade->id,
+                'filepath'  => '/',
+                'filename'  => $filename,
+            ],
+            $filecontent
+        );
+    }
+
+    /**
+     * Plants a file in the grader annotated PDF file area (GRADER_ANNOTATED_FILE).
+     *
+     * Creates a grade record for the student if one does not already exist.
+     *
+     * @param \assign $assign Assignment instance
+     * @param int $studentid ID of the student whose grade record to use
+     * @param string $filename Name for the planted file
+     * @param string $filecontent Synthetic file content
+     * @return \stored_file
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \file_exception
+     * @throws \moodle_exception
+     * @throws \stored_file_creation_exception
+     */
+    public function add_grader_annotated_file(
+        \assign $assign,
+        int $studentid,
+        string $filename = 'annotated.pdf',
+        string $filecontent = 'annotated file content',
+    ): \stored_file {
+        $grade = $assign->get_user_grade($studentid, true);
+
+        return get_file_storage()->create_file_from_string(
+            [
+                'contextid' => $assign->get_context()->id,
+                'component' => 'assignfeedback_editpdf',
+                'filearea'  => \assignfeedback_editpdf\document_services::FINAL_PDF_FILEAREA,
+                'itemid'    => $grade->id,
+                'filepath'  => '/',
+                'filename'  => $filename,
+            ],
+            $filecontent
+        );
     }
 }
