@@ -28,12 +28,14 @@ use archivingmod_assign\external\generate_submission_report;
 use archivingmod_assign\local\type\attachment_type;
 use context_module;
 
+// @codeCoverageIgnoreStart
 // phpcs:ignore
-defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
+defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->dirroot . '/mod/assign/feedback/file/locallib.php');
 require_once($CFG->dirroot . '/mod/assign/submission/file/locallib.php');
+// @codeCoverageIgnoreEnd
 
 
 /**

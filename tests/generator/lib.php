@@ -14,6 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+use local_archiving\activity_archiving_task;
+use local_archiving\archive_job;
+use local_archiving\type\cm_state_fingerprint;
+use local_archiving\type\db_table;
+
 // phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
@@ -45,6 +50,46 @@ class archivingmod_assign_generator extends \testing_data_generator {
         return ($fullpath ? rtrim($CFG->dirroot, '/') . '/' : '') .
                'local/archiving/driver/mod/assign/tests/fixtures/' .
                ltrim($filename, '/');
+    }
+
+    /**
+     * Creates a mock assignment archiving task, optionally with a web service token.
+     *
+     * @param bool $populateassignment If true, a fully featured assignment with submissions will be generated.
+     * If false, an empty assignment without submissions will be generated.
+     * @param string|null $wstoken Web service token to assign to the task
+     * @return \stdClass Object with properties: course, cm, assignment, teacher, student, context, job, task
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function create_mock_task(bool $populateassignment = false, ?string $wstoken = null): \stdClass {
+        global $DB;
+
+        // Create assignment and derive context.
+        $mocks = $populateassignment ? $this->create_fully_featured_assignment_with_submission() : $this->create_assignment();
+        $context = \context_module::instance($mocks->cm->id);
+
+        // Create archive job and task.
+        $job = archive_job::create($context, get_admin()->id, 'manual', settings: (object) []);
+        $task = activity_archiving_task::create(
+            $job->get_id(),
+            $context,
+            cm_state_fingerprint::from_raw_value(str_repeat('0', 64)),
+            get_admin()->id,
+            'assign'
+        );
+
+        // Assign wstoken if given.
+        if ($wstoken !== null) {
+            $DB->set_field(db_table::ACTIVITY_TASK->value, 'wstoken', $wstoken, ['id' => $task->get_id()]);
+        }
+
+        $mocks->context = $context;
+        $mocks->job = $job;
+        $mocks->task = $task;
+
+        return $mocks;
     }
 
     /**
