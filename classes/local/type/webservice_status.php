@@ -50,6 +50,9 @@ enum webservice_status {
     /** @var self No task with given taskid was found */
     case E_TASK_NOT_FOUND;
 
+    /** @var self A task was found but had an invalid archivingmod associated with it */
+    case E_TASK_TYPE_INVALID;
+
     /** @var self Course could not be found */
     case E_COURSE_NOT_FOUND;
 
