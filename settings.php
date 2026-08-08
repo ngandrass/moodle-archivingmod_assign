@@ -83,6 +83,120 @@ if ($hassiteconfig) {
             '',
             PARAM_TEXT
         ));
+
+        // Job Presets.
+        $settings->add(new admin_setting_heading(
+            'archivingmod_assign/header_job_presets',
+            get_string('setting_header_job_presets', 'local_archiving'),
+            get_string('setting_header_job_presets_desc', 'local_archiving'),
+        ));
+
+        // Job preset: Submission report sections.
+        foreach (submission_report_section::cases() as $section) {
+            $set = new admin_setting_configcheckbox(
+                'archivingmod_assign/job_preset_report_section_' . $section->value,
+                get_string('task_report_section_' . $section->value, 'archivingmod_assign'),
+                get_string('task_report_section_' . $section->value . '_help', 'archivingmod_assign'),
+                '1',
+            );
+            $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+
+            foreach ($section->dependencies() as $dependency) {
+                $set->add_dependent_on('archivingmod_assign/job_preset_report_section_' . $dependency->value);
+            }
+
+            $settings->add($set);
+        }
+
+        // Job preset: Submission folder name pattern.
+        $set = new admin_setting_filename_pattern(
+            'archivingmod_assign/job_preset_submission_foldername_pattern',
+            get_string('task_submission_foldername_pattern', 'archivingmod_assign'),
+            get_string('task_submission_foldername_pattern_help', 'archivingmod_assign', [
+                'variables' => array_reduce(
+                    submission_filename_variable::values(),
+                    fn($res, $varname) => $res . "<li><code>\${" . $varname . "}</code>: " .
+                        get_string('task_submission_filename_pattern_variable_' . $varname, 'archivingmod_assign') .
+                        "</li>",
+                    ""
+                ),
+                'forbiddenchars' => implode('', \local_archiving\storage::FOLDERNAME_FORBIDDEN_CHARACTERS),
+            ]),
+            '${username}-${submissionid}-${date}_${time}',
+            submission_filename_variable::values(),
+            \local_archiving\storage::FOLDERNAME_FORBIDDEN_CHARACTERS,
+            PARAM_TEXT,
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
+
+        // Job preset: Submission filename pattern.
+        $set = new admin_setting_filename_pattern(
+            'archivingmod_assign/job_preset_submission_filename_pattern',
+            get_string('task_submission_filename_pattern', 'archivingmod_assign'),
+            get_string('task_submission_filename_pattern_help', 'archivingmod_assign', [
+                'variables' => array_reduce(
+                    submission_filename_variable::values(),
+                    fn($res, $varname) => $res . "<li><code>\${" . $varname . "}</code>: " .
+                        get_string('task_submission_filename_pattern_variable_' . $varname, 'archivingmod_assign') .
+                        "</li>",
+                    ""
+                ),
+                'forbiddenchars' => implode('', \local_archiving\storage::FILENAME_FORBIDDEN_CHARACTERS),
+            ]),
+            'submission-${submissionid}-${username}_${date}-${time}',
+            submission_filename_variable::values(),
+            \local_archiving\storage::FILENAME_FORBIDDEN_CHARACTERS,
+            PARAM_TEXT,
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
+
+        // Job preset: Image optimization.
+        $set = new admin_setting_configcheckbox(
+            'archivingmod_assign/job_preset_image_optimize',
+            get_string('task_image_optimize', 'archivingmod_assign'),
+            get_string('task_image_optimize_help', 'archivingmod_assign'),
+            '0',
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
+
+        // Job preset: Image optimization: Max width.
+        $set = new admin_setting_configtext(
+            'archivingmod_assign/job_preset_image_optimize_width',
+            get_string('task_image_optimize_width', 'archivingmod_assign'),
+            get_string('task_image_optimize_width_help', 'archivingmod_assign'),
+            '1280',
+            PARAM_INT
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $set->add_dependent_on('archivingmod_assign/job_preset_image_optimize');
+        $settings->add($set);
+
+        // Job preset: Image optimization: Max height.
+        $set = new admin_setting_configtext(
+            'archivingmod_assign/job_preset_image_optimize_height',
+            get_string('task_image_optimize_height', 'archivingmod_assign'),
+            get_string('task_image_optimize_height_help', 'archivingmod_assign'),
+            '1280',
+            PARAM_INT
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $set->add_dependent_on('archivingmod_assign/job_preset_image_optimize');
+        $settings->add($set);
+
+        // Job preset: Image optimization: Quality.
+        $set = new admin_setting_configtext(
+            'archivingmod_assign/job_preset_image_optimize_quality',
+            get_string('task_image_optimize_quality', 'archivingmod_assign'),
+            get_string('task_image_optimize_quality_help', 'archivingmod_assign'),
+            '85',
+            PARAM_INT
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $set->add_dependent_on('archivingmod_assign/job_preset_image_optimize');
+        $settings->add($set);
     }
 
     // Settingpage is added to tree automatically. No need to add it manually here.

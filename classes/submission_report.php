@@ -80,6 +80,7 @@ class submission_report {
      * @throws \moodle_exception
      */
     public function generate(int $submissionid): string {
+        // TODO: Conditionally include stuff based on selected sections.
         global $DB, $OUTPUT;
 
         // Get and validate submission.

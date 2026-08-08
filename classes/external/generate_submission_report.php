@@ -180,6 +180,10 @@ class generate_submission_report extends external_api {
             return ['status' => webservice_status::E_SUBMISSION_NOT_FOUND->name];
         }
 
+        // The following code is tested covered by more specific tests.
+        // phpcs:ignore
+        // @codeCoverageIgnoreStart
+
         // Forcefully set URL in $PAGE to the webservice handler to prevent future warnings.
         $PAGE->set_url(new \moodle_url('/webservice/rest/server.php', [
             'wsfunction' => 'archivingmod_assign_generate_submission_report',
@@ -197,6 +201,7 @@ class generate_submission_report extends external_api {
         $res['status'] = webservice_status::OK->name;
 
         return $res;
+        // @codeCoverageIgnoreEnd
     }
 
     /**
