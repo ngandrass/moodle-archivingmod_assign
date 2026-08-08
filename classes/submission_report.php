@@ -25,7 +25,7 @@
 namespace archivingmod_assign;
 
 use core_course\output\activity_icon;
-use local_archiving\util\report_util;
+use local_archiving\local\util\report_util;
 
 // phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore

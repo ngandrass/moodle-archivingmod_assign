@@ -17,7 +17,7 @@ Once a stable version is released, this warning will be removed.
 
 Activity archiving drivers (`archivingmod`) are sub-plugins of the archiving subsystem core (`local_archiving`) and
 therefore require the core plugin to be installed. They then must be placed inside your Moodle directory under
-`local/archiving/driver/mod`.
+`local/archiving/mod`.
 
 You can find detailed installation instructions within the [official documentation](https://archiving.gandrass.de/).
 If you have problems installing this plugin or have further questions, please feel free to open an issue within the

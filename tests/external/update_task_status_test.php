@@ -25,8 +25,8 @@
 namespace archivingmod_assign\external;
 
 use archivingmod_assign\local\type\webservice_status;
-use local_archiving\type\activity_archiving_task_status;
-use local_archiving\type\db_table;
+use local_archiving\local\type\activity_archiving_task_status;
+use local_archiving\local\type\db_table;
 
 
 /**

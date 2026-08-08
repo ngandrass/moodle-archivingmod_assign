@@ -22,6 +22,9 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use archivingmod_assign\local\type\submission_filename_variable;
+use archivingmod_assign\local\type\submission_report_section;
+use local_archiving\local\admin\setting\admin_setting_filename_pattern;
 use local_archiving\local\admin\setting\admin_setting_webservice_enabler;
 
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore

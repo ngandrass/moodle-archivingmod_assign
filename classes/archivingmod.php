@@ -24,11 +24,13 @@
 
 namespace archivingmod_assign;
 
+use assign;
+use context_module;
 use context_system;
 use local_archiving\activity_archiving_task;
-use local_archiving\exception\yield_exception;
-use local_archiving\type\activity_archiving_task_status;
-use local_archiving\type\cm_state_fingerprint;
+use local_archiving\local\exception\yield_exception;
+use local_archiving\local\type\activity_archiving_task_status;
+use local_archiving\local\type\cm_state_fingerprint;
 
 // phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -37,7 +39,7 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 /**
  * Assignment activity archiving driver
  */
-class archivingmod extends \local_archiving\driver\archivingmod {
+class archivingmod extends \local_archiving\local\driver\archivingmod {
     #[\Override]
     public static function get_supported_activities(): array {
         return ['assign'];

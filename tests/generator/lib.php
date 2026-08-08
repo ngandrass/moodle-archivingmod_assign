@@ -16,8 +16,8 @@
 
 use local_archiving\activity_archiving_task;
 use local_archiving\archive_job;
-use local_archiving\type\cm_state_fingerprint;
-use local_archiving\type\db_table;
+use local_archiving\local\type\cm_state_fingerprint;
+use local_archiving\local\type\db_table;
 
 // phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -48,7 +48,7 @@ class archivingmod_assign_generator extends \testing_data_generator {
     public static function get_fixture_file_path(string $filename, bool $fullpath = false): string {
         global $CFG;
         return ($fullpath ? rtrim($CFG->dirroot, '/') . '/' : '') .
-               'local/archiving/driver/mod/assign/tests/fixtures/' .
+               'local/archiving/mod/assign/tests/fixtures/' .
                ltrim($filename, '/');
     }
 

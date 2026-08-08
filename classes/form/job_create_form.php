@@ -18,11 +18,15 @@
  * Defines the job creation form
  *
  * @package    archivingmod_assign
- * @copyright  2025 Niels Gandraß <niels@gandrass.de>
+ * @copyright  2026 Niels Gandraß <niels@gandrass.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace archivingmod_assign\form;
+
+use archivingmod_assign\local\type\submission_filename_variable;
+use archivingmod_assign\local\type\submission_report_section;
+use local_archiving\storage;
 
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 

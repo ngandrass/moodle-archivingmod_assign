@@ -28,12 +28,12 @@
 
 use archivingmod_assign\assignment_manager;
 
-require_once('../../../../../../config.php');
+require_once('../../../../../config.php');
 
 $am = new assignment_manager(28, 92);
 require_login($am->get_course());
 
-$url = new moodle_url('/local/archiving/driver/mod/assign/foo.php');
+$url = new moodle_url('/local/archiving/mod/assign/foo.php');
 $PAGE->set_url($url);
 //$PAGE->set_context($am->get_cm()->context);
 
