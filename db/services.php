@@ -35,6 +35,13 @@ $functions = [
         'ajax' => true,
         'services' => [],
     ],
+    'archivingmod_assign_get_submissions_metadata' => [
+        'classname' => 'archivingmod_assign\external\get_submissions_metadata',
+        'description' => 'Returns metadata about submissions of an assignment',
+        'type' => 'read',
+        'ajax' => true,
+        'services' => [],
+    ],
     'archivingmod_assign_update_task_status' => [
         'classname' => 'archivingmod_assign\external\update_task_status',
         'description' => 'Update the status of an assignment activity archiving task',
