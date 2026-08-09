@@ -54,6 +54,8 @@ final class generate_submission_report_test extends \advanced_testcase {
             'uuid' => $uuid,
             'taskid' => $taskid,
             'submissionid' => $submissionid,
+            'foldernamepattern' => '${username}/${submissionid}-${date}_${time}',
+            'filenamepattern' => 'submission-${username}-${submissionid}-${date}_${time}',
         ];
     }
 
@@ -114,7 +116,13 @@ final class generate_submission_report_test extends \advanced_testcase {
 
         // Check that correct wstoken allows access.
         $_GET['wstoken'] = $wstoken;
-        $res = generate_submission_report::execute($r['uuid'], $r['taskid'], $r['submissionid']);
+        $res = generate_submission_report::execute(
+            $r['uuid'],
+            $r['taskid'],
+            $r['submissionid'],
+            $r['foldernamepattern'],
+            $r['filenamepattern'],
+        );
         $this->assertNotSame(
             webservice_status::E_ACCESS_DENIED->name,
             $res['status'],
@@ -123,7 +131,13 @@ final class generate_submission_report_test extends \advanced_testcase {
 
         // Check that incorrect wstoken is rejected.
         $_GET['wstoken'] = 'TEST-WS-TOKEN-INVALID';
-        $res = generate_submission_report::execute($r['uuid'], $r['taskid'], $r['submissionid']);
+        $res = generate_submission_report::execute(
+            $r['uuid'],
+            $r['taskid'],
+            $r['submissionid'],
+            $r['foldernamepattern'],
+            $r['filenamepattern'],
+        );
         $this->assertSame(
             webservice_status::E_ACCESS_DENIED->name,
             $res['status'],
@@ -167,6 +181,8 @@ final class generate_submission_report_test extends \advanced_testcase {
             $invalidparameterkey === 'uuid' ? '<a href="localhost">not-a-uuid</a>' : $r['uuid'],
             $invalidparameterkey === 'taskid' ? 0 : $r['taskid'],
             $invalidparameterkey === 'submissionid' ? 0 : $r['submissionid'],
+            $invalidparameterkey === 'foldernamepattern' ? 'invalid-${pattern' : $r['foldernamepattern'],
+            $invalidparameterkey === 'filenamepattern' ? 'invalid-${pattern' : $r['filenamepattern'],
         );
         $this->assertNotSame(
             webservice_status::OK->name,
@@ -185,6 +201,8 @@ final class generate_submission_report_test extends \advanced_testcase {
             'Invalid uuid' => ['uuid'],
             'Invalid taskid' => ['taskid'],
             'Invalid submissionid' => ['submissionid'],
+            'Invalid foldernamepattern' => ['foldernamepattern'],
+            'Invalid filenamepattern' => ['filenamepattern'],
         ];
     }
 
@@ -216,7 +234,13 @@ final class generate_submission_report_test extends \advanced_testcase {
         $_GET['wstoken'] = $wstoken;
 
         // Execute the request.
-        $res = generate_submission_report::execute($r['uuid'], $r['taskid'], $r['submissionid']);
+        $res = generate_submission_report::execute(
+            $r['uuid'],
+            $r['taskid'],
+            $r['submissionid'],
+            $r['foldernamepattern'],
+            $r['filenamepattern'],
+        );
         $this->assertSame(
             webservice_status::E_SUBMISSION_NOT_FOUND->name,
             $res['status'],

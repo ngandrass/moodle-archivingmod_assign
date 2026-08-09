@@ -65,6 +65,12 @@ enum webservice_status {
     /** @var self No submission was found with the given ID */
     case E_SUBMISSION_NOT_FOUND;
 
+    /** @var self Given foldername pattern was invalid */
+    case E_INVALID_FOLDERNAME_PATTERN;
+
+    /** @var self Given filename pattern was invalid */
+    case E_INVALID_FILENAME_PATTERN;
+
     /** @var self Invalid status value given */
     case E_INVALID_STATUS;
 

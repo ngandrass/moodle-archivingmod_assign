@@ -202,8 +202,8 @@ class remote_archive_worker {
                 "attachments" => $attachments,
                 "paper_format" => $settings->paper_format,
                 "archive_filename" => $task->get_job()->generate_archive_name_prefix(),
-                "foldername_pattern" => $settings->attempt_foldername_pattern,
-                "filename_pattern" => $settings->attempt_filename_pattern,
+                "foldername_pattern" => $settings->submission_foldername_pattern,
+                "filename_pattern" => $settings->submission_filename_pattern,
                 "image_optimize" => $settings->image_optimize ? [
                     "width" => $settings->image_optimize_width,
                     "height" => $settings->image_optimize_height,

@@ -24,8 +24,11 @@
 
 namespace archivingmod_assign;
 
+use archivingmod_assign\local\type\submission_filename_variable;
 use core_course\output\activity_icon;
+use local_archiving\local\util\course_util;
 use local_archiving\local\util\report_util;
+use local_archiving\storage;
 
 // phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -259,5 +262,78 @@ class submission_report {
         }
 
         return $dom->saveHTML();
+    }
+
+    /**
+     * Generates a submission file- or foldername based on the given pattern and
+     * context information
+     *
+     * @param int $submissionid ID of the submission
+     * @param string $pattern Filename pattern to use
+     * @param bool $isfoldername If true, the filename will be treated as a folder name
+     * @return string Filename with substituted variables
+     * @throws \dml_exception If the submission or user could not be found in the database
+     * @throws \invalid_parameter_exception If the pattern is invalid
+     * @throws \coding_exception
+     */
+    public function generate_submission_filename(int $submissionid, string $pattern, bool $isfoldername = false): string {
+        global $DB;
+
+        // Validate pattern.
+        $allowedvariables = submission_filename_variable::values();
+        if ($isfoldername) {
+            if (!storage::is_valid_filename_pattern($pattern, $allowedvariables, storage::FOLDERNAME_FORBIDDEN_CHARACTERS)) {
+                throw new \invalid_parameter_exception(
+                    get_string('error_invalid_submission_foldername_pattern', 'archivingmod_assign')
+                );
+            }
+        } else {
+            if (!storage::is_valid_filename_pattern($pattern, $allowedvariables, storage::FILENAME_FORBIDDEN_CHARACTERS)) {
+                throw new \invalid_parameter_exception(
+                    get_string('error_invalid_submission_filename_pattern', 'archivingmod_assign')
+                );
+            }
+        }
+
+        // Prepare data.
+        $submissioninfo = $DB->get_record('assign_submission', ['id' => $submissionid], '*', MUST_EXIST);
+        $userinfo = $DB->get_record('user', ['id' => $submissioninfo->userid], '*', MUST_EXIST);
+        $usergroups = course_util::get_user_groups($this->course->id, $userinfo->id);
+        $assigninstance = $this->assignment->get_instance();
+        $data = [
+            'assignmentid' => $assigninstance->id ?: 0,
+            'assignmenttitle' => $assigninstance->name ?: 'null',
+            'attemptnumber' => $submissioninfo->attemptnumber ?: 0,
+            'cmid' => $this->cm->id ?: 0,
+            'courseid' => $this->course->id ?: 0,
+            'coursename' => $this->course->fullname ?: 'null',
+            'courseshortname' => $this->course->shortname ?: 'null',
+            'date' => date('Y-m-d'),
+            'firstname' => $userinfo->firstname ?: 'null',
+            'groupidnumbers' => join('-', array_map(fn($group) => $group->idnumber ?: 'null', $usergroups)) ?: 0,
+            'groupids' => join('-', array_map(fn($group) => $group->id, $usergroups)) ?: 0,
+            'groupnames' => join('-', array_map(fn($group) => $group->name, $usergroups)) ?: 'nogroup',
+            'idnumber' => $userinfo->idnumber ?: 'null',
+            'lastname' => $userinfo->lastname ?: 'null',
+            'submissionid' => $submissionid ?: 0,
+            'time' => date('H-i-s'),
+            'timecreated' => $submissioninfo->timecreated ?: 0,
+            'timemodified' => $submissioninfo->timemodified ?: 0,
+            'timestamp' => time(),
+            'timestart' => $submissioninfo->timestarted ?: 0,
+            'username' => $userinfo->username ?: 'null',
+        ];
+
+        // Substitute variables.
+        $filename = $pattern;
+        foreach ($data as $key => $value) {
+            $filename = preg_replace(
+                '/\$\{\s*' . $key . '\s*\}/m',
+                substr($value, 0, storage::FILENAME_VARIABLE_MAX_LENGTH),
+                $filename
+            );
+        }
+
+        return $isfoldername ? storage::sanitize_foldername($filename) : storage::sanitize_filename($filename);
     }
 }

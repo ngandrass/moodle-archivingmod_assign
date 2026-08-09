@@ -199,4 +199,136 @@ final class submission_report_test extends \advanced_testcase {
 
         $this->assertNotEmpty($html, 'Generated full page report is empty');
     }
+
+    /**
+     * Tests that generate_submission_filename() correctly substitutes known variables.
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \invalid_parameter_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_submission_filename_substitutes_variables(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $filename = $report->generate_submission_filename(
+            $testdata->submission->id,
+            'submission-${submissionid}-${username}-${assignmentid}',
+            false
+        );
+
+        $this->assertSame(
+            "submission-{$testdata->submission->id}-{$testdata->student->username}-{$testdata->assignment->id}",
+            $filename
+        );
+    }
+
+    /**
+     * Tests that generate_submission_filename() preserves path separators when
+     * generating a folder name.
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \invalid_parameter_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_submission_filename_as_foldername_preserves_path_separators(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $foldername = $report->generate_submission_filename(
+            $testdata->submission->id,
+            '${username}/${submissionid}',
+            true
+        );
+
+        $this->assertSame(
+            "{$testdata->student->username}/{$testdata->submission->id}",
+            $foldername
+        );
+    }
+
+    /**
+     * Tests that generate_submission_filename() throws an invalid_parameter_exception
+     * for a folder name pattern containing forbidden characters.
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_submission_filename_throws_for_invalid_foldername_pattern(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        $report->generate_submission_filename($testdata->submission->id, '${username}*', true);
+    }
+
+    /**
+     * Tests that generate_submission_filename() throws an invalid_parameter_exception
+     * for a filename pattern containing forbidden characters (e.g. a path separator).
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_submission_filename_throws_for_invalid_filename_pattern(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        $report->generate_submission_filename($testdata->submission->id, '${username}/${submissionid}', false);
+    }
+
+    /**
+     * Tests that generate_submission_filename() throws an invalid_parameter_exception
+     * for a pattern referencing an unknown variable.
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_submission_filename_throws_for_unknown_variable(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $this->expectException(\invalid_parameter_exception::class);
+        $report->generate_submission_filename($testdata->submission->id, '${notavariable}', false);
+    }
 }
