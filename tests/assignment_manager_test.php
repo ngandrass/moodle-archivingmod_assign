@@ -306,7 +306,6 @@ final class assignment_manager_test extends \advanced_testcase {
         $this->assertCount(1, $metadata);
         $record = reset($metadata);
 
-        $this->assertEquals($testdata->assignment->id, $record->assignmentid);
         $this->assertEquals($testdata->submission->id, $record->submissionid);
         $this->assertEquals($testdata->student->id, $record->userid);
         $this->assertEquals(ASSIGN_SUBMISSION_STATUS_SUBMITTED, $record->status);

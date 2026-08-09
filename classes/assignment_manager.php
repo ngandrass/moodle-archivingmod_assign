@@ -183,7 +183,7 @@ class assignment_manager {
 
         // Get all requested submissions.
         return $DB->get_records_sql(
-            "SELECT s.assignment AS assignmentid, s.id AS submissionid, s.userid, s.attemptnumber, s.status,
+            "SELECT s.id AS submissionid, s.userid, s.attemptnumber, s.status,
                     s.timecreated, s.timemodified, s.timestarted,
                     u.username, u.firstname, u.lastname, u.idnumber
              FROM {assign_submission} s LEFT JOIN {user} u ON s.userid = u.id
