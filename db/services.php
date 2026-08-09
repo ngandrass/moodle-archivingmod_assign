@@ -42,6 +42,13 @@ $functions = [
         'ajax' => true,
         'services' => [],
     ],
+    'archivingmod_assign_process_uploaded_artifact' => [
+        'classname' => 'archivingmod_assign\external\process_uploaded_artifact',
+        'description' => 'Process an uploaded artifact for assignment archiving',
+        'type' => 'write',
+        'ajax' => true,
+        'services' => [],
+    ],
 ];
 
 // Web service definitions.
