@@ -24,8 +24,10 @@
 
 namespace archivingmod_assign\form;
 
+use archivingmod_assign\local\type\attachment_type;
 use archivingmod_assign\local\type\submission_filename_variable;
 use archivingmod_assign\local\type\submission_report_section;
+use local_archiving\local\type\paper_format;
 use local_archiving\storage;
 
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
@@ -58,13 +60,14 @@ class job_create_form extends \local_archiving\form\job_create_form {
 
     #[\Override]
     protected function definition_base_settings(): void {
+        // Report sections.
         $sectionidx = 0;
         foreach (submission_report_section::cases() as $section) {
             $sectionidx++;
             $this->_form->addElement(
                 'advcheckbox',
                 'report_section_' . $section->value,
-                $sectionidx === 1 ? get_string('submission', 'archivingmod_assign') : '&nbsp;',
+                $sectionidx === 1 ? get_string('submission_report', 'archivingmod_assign') : '&nbsp;',
                 get_string('task_report_section_' . $section->value, 'archivingmod_assign'),
                 $this->config->handler->{'job_preset_report_section_' . $section->value . '_locked'} ? 'disabled' : null
             );
@@ -89,11 +92,55 @@ class job_create_form extends \local_archiving\form\job_create_form {
             }
         }
 
+        // File attachments.
+        $sectionidx = 0;
+        foreach (attachment_type::cases() as $section) {
+            $sectionidx++;
+            $this->_form->addElement(
+                'advcheckbox',
+                'attachment_' . $section->value,
+                $sectionidx === 1 ? get_string('submission_files', 'archivingmod_assign') : '&nbsp;',
+                get_string('task_attachment_' . $section->value, 'archivingmod_assign'),
+                $this->config->handler->{'job_preset_attachment_' . $section->value . '_locked'} ? 'disabled' : null
+            );
+            $this->_form->addHelpButton(
+                'attachment_' . $section->value,
+                'task_attachment_' . $section->value,
+                'archivingmod_assign'
+            );
+            $this->_form->setDefault(
+                'attachment_' . $section->value,
+                $this->config->handler->{'job_preset_attachment_' . $section->value}
+            );
+        }
+
         parent::definition_base_settings();
     }
 
     #[\Override]
     protected function definition_advanced_settings(): void {
+        // Advanced options: Paper format.
+        $this->_form->addElement(
+            'select',
+            'paper_format',
+            get_string('task_paper_format', 'archivingmod_assign'),
+            array_combine(paper_format::values(), paper_format::values()),
+            $this->config->handler->job_preset_paper_format_locked ? 'disabled' : null
+        );
+        $this->_form->addHelpButton('paper_format', 'task_paper_format', 'archivingmod_assign');
+        $this->_form->setDefault('paper_format', $this->config->handler->job_preset_paper_format);
+
+        // Advanced options: Keep HTML files.
+        $this->_form->addElement(
+            'advcheckbox',
+            'keep_html_files',
+            get_string('task_keep_html_files', 'archivingmod_assign'),
+            get_string('task_keep_html_files_desc', 'archivingmod_assign'),
+            $this->config->handler->job_preset_keep_html_files_locked ? 'disabled' : null
+        );
+        $this->_form->addHelpButton('keep_html_files', 'task_keep_html_files', 'archivingmod_assign');
+        $this->_form->setDefault('keep_html_files', $this->config->handler->job_preset_keep_html_files);
+
         // Advanced options: Image optimization.
         $this->_form->addElement(
             'advcheckbox',

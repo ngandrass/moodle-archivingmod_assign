@@ -22,10 +22,12 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use archivingmod_assign\local\type\attachment_type;
 use archivingmod_assign\local\type\submission_filename_variable;
 use archivingmod_assign\local\type\submission_report_section;
 use local_archiving\local\admin\setting\admin_setting_filename_pattern;
 use local_archiving\local\admin\setting\admin_setting_webservice_enabler;
+use local_archiving\local\type\paper_format;
 
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
@@ -107,6 +109,39 @@ if ($hassiteconfig) {
 
             $settings->add($set);
         }
+
+        // Job preset: Submission attachments.
+        foreach (attachment_type::cases() as $section) {
+            $set = new admin_setting_configcheckbox(
+                'archivingmod_assign/job_preset_attachment_' . $section->value,
+                get_string('task_attachment_' . $section->value, 'archivingmod_assign'),
+                get_string('task_attachment_' . $section->value . '_help', 'archivingmod_assign'),
+                '1',
+            );
+            $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+            $settings->add($set);
+        }
+
+        // Job preset: Export paper format.
+        $set = new admin_setting_configselect(
+            'archivingmod_assign/job_preset_paper_format',
+            get_string('task_paper_format', 'archivingmod_assign'),
+            get_string('task_paper_format_help', 'archivingmod_assign'),
+            'A4',
+            array_combine(paper_format::values(), paper_format::values()),
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
+
+        // Job preset: Keep HTML files.
+        $set = new admin_setting_configcheckbox(
+            'archivingmod_assign/job_preset_keep_html_files',
+            get_string('task_keep_html_files', 'archivingmod_assign'),
+            get_string('task_keep_html_files_help', 'archivingmod_assign'),
+            '0',
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
 
         // Job preset: Submission folder name pattern.
         $set = new admin_setting_filename_pattern(

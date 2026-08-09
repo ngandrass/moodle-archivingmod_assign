@@ -44,14 +44,8 @@ enum submission_report_section: string {
     /** @var string Assignment instructions */
     case ASSIGNMENT_INSTRUCTIONS = 'instructions';
 
-    /** @var string Intro files attached to assignment */
-    case ASSIGNMENT_INTRO_FILES = 'introfiles';
-
     /** @var string Submission section */
     case SUBMISSION = 'submission';
-
-    /** @var string Files submitted by the user */
-    case SUBMISSION_FILES = 'submissionfiles';
 
     /** @var string Status of the submission and grading */
     case SUBMISSION_STATUS = 'submissionstatus';
@@ -71,12 +65,6 @@ enum submission_report_section: string {
     /** @var string Details about the grading (grader and time) */
     case GRADING_DETAILS = 'gradedetails';
 
-    /** @var string Annotated grading PDF files */
-    case FEEDBACK_ANNOTATED_PDFS = 'annotatedpdfs';
-
-    /** @var string Feedback files provided by grader */
-    case FEEDBACK_FILES = 'feedbackfiles';
-
     /**
      * Retrieves the list of dependencies for this section.
      *
@@ -88,15 +76,11 @@ enum submission_report_section: string {
     public function dependencies(): array {
         return match ($this) {
             self::ASSIGNMENT_INSTRUCTIONS => [self::ASSIGNMENT_HEADER],
-            self::ASSIGNMENT_INTRO_FILES => [self::ASSIGNMENT_HEADER],
             self::SUBMISSION_STATUS => [self::SUBMISSION],
             self::SUBMISSION_COMMENTS => [self::SUBMISSION],
-            self::SUBMISSION_FILES => [self::SUBMISSION],
             self::FEEDBACK_COMMENTS => [self::FEEDBACK],
             self::GRADE => [self::FEEDBACK],
             self::GRADING_DETAILS => [self::FEEDBACK, self::GRADE],
-            self::FEEDBACK_ANNOTATED_PDFS => [self::FEEDBACK],
-            self::FEEDBACK_FILES => [self::FEEDBACK],
             default => [],
         };
     }
