@@ -143,28 +143,6 @@ if ($hassiteconfig) {
         $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
         $settings->add($set);
 
-        // Job preset: Submission folder name pattern.
-        $set = new admin_setting_filename_pattern(
-            'archivingmod_assign/job_preset_submission_foldername_pattern',
-            get_string('task_submission_foldername_pattern', 'archivingmod_assign'),
-            get_string('task_submission_foldername_pattern_help', 'archivingmod_assign', [
-                'variables' => array_reduce(
-                    submission_filename_variable::values(),
-                    fn($res, $varname) => $res . "<li><code>\${" . $varname . "}</code>: " .
-                        get_string('task_submission_filename_pattern_variable_' . $varname, 'archivingmod_assign') .
-                        "</li>",
-                    ""
-                ),
-                'forbiddenchars' => implode('', \local_archiving\storage::FOLDERNAME_FORBIDDEN_CHARACTERS),
-            ]),
-            '${username}-${submissionid}-${date}_${time}',
-            submission_filename_variable::values(),
-            \local_archiving\storage::FOLDERNAME_FORBIDDEN_CHARACTERS,
-            PARAM_TEXT,
-        );
-        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
-        $settings->add($set);
-
         // Job preset: Submission filename pattern.
         $set = new admin_setting_filename_pattern(
             'archivingmod_assign/job_preset_submission_filename_pattern',
@@ -185,6 +163,39 @@ if ($hassiteconfig) {
             PARAM_TEXT,
         );
         $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
+
+        // Flatten export archive.
+        $set = new admin_setting_configcheckbox(
+            'archivingmod_assign/job_preset_archive_flatten',
+            get_string('task_archive_flatten', 'archivingmod_assign'),
+            get_string('task_archive_flatten_help', 'archivingmod_assign'),
+            '0',
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $settings->add($set);
+
+        // Job preset: Submission folder name pattern.
+        $set = new admin_setting_filename_pattern(
+            'archivingmod_assign/job_preset_submission_foldername_pattern',
+            get_string('task_submission_foldername_pattern', 'archivingmod_assign'),
+            get_string('task_submission_foldername_pattern_help', 'archivingmod_assign', [
+                'variables' => array_reduce(
+                    submission_filename_variable::values(),
+                    fn($res, $varname) => $res . "<li><code>\${" . $varname . "}</code>: " .
+                        get_string('task_submission_filename_pattern_variable_' . $varname, 'archivingmod_assign') .
+                        "</li>",
+                    ""
+                ),
+                'forbiddenchars' => implode('', \local_archiving\storage::FOLDERNAME_FORBIDDEN_CHARACTERS),
+            ]),
+            '${username}-${submissionid}-${date}_${time}',
+            submission_filename_variable::values(),
+            \local_archiving\storage::FOLDERNAME_FORBIDDEN_CHARACTERS,
+            PARAM_TEXT,
+        );
+        $set->set_locked_flag_options(admin_setting_flag::ENABLED, false);
+        $set->add_dependent_on('archivingmod_assign/job_preset_archive_flatten');
         $settings->add($set);
 
         // Job preset: Image optimization.

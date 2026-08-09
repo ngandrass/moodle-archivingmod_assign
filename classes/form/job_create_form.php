@@ -39,25 +39,6 @@ require_once($CFG->dirroot . '/lib/formslib.php'); // @codeCoverageIgnore
  * Form to initiate a new assignment archive job
  */
 class job_create_form extends \local_archiving\form\job_create_form {
-    /**
-     * Defines header elements in form
-     *
-     * @return void
-     * @throws \coding_exception
-     */
-    #[\Override]
-    protected function definition_header(): void {
-        global $OUTPUT;
-
-        parent::definition_header();
-
-        // Add WIP warning.
-        $this->_form->addElement('html', $OUTPUT->notification(
-            'The assignment archving driver is not yet implemented! It will only return a stub file.',
-            \core\output\notification::NOTIFY_WARNING
-        ));
-    }
-
     #[\Override]
     protected function definition_base_settings(): void {
         // Report sections.
@@ -258,35 +239,6 @@ class job_create_form extends \local_archiving\form\job_create_form {
         );
         $this->_form->hideIf('image_optimize_quality_group', 'image_optimize', 'notchecked');
 
-        // Advanced options: Submission folder name pattern.
-        $this->_form->addElement(
-            'text',
-            'submission_foldername_pattern',
-            get_string('task_submission_foldername_pattern', 'archivingmod_assign'),
-            $this->config->handler->job_preset_submission_foldername_pattern_locked ? 'disabled' : null
-        );
-        $this->_form->addHelpButton(
-            'submission_foldername_pattern',
-            'task_submission_foldername_pattern',
-            'archivingmod_assign',
-            '',
-            false,
-            [
-                'variables' => array_reduce(
-                    submission_filename_variable::values(),
-                    fn($res, $varname) => $res . "<li>" .
-                        "<code>\${" . $varname . "}</code>: " .
-                        get_string('task_submission_filename_pattern_variable_' . $varname, 'archivingmod_assign') .
-                        "</li>",
-                    ""
-                ),
-                'forbiddenchars' => htmlspecialchars(implode('', storage::FOLDERNAME_FORBIDDEN_CHARACTERS)),
-            ]
-        );
-        $this->_form->setType('submission_foldername_pattern', PARAM_TEXT);
-        $this->_form->setDefault('submission_foldername_pattern', $this->config->handler->job_preset_submission_foldername_pattern);
-        $this->_form->addRule('submission_foldername_pattern', null, 'maxlength', 255, 'client');
-
         // Advanced options: Submission filename pattern.
         $this->_form->addElement(
             'text',
@@ -315,6 +267,47 @@ class job_create_form extends \local_archiving\form\job_create_form {
         $this->_form->setType('submission_filename_pattern', PARAM_TEXT);
         $this->_form->setDefault('submission_filename_pattern', $this->config->handler->job_preset_submission_filename_pattern);
         $this->_form->addRule('submission_filename_pattern', null, 'maxlength', 255, 'client');
+
+        // Advanced options: Archive flatten.
+        $this->_form->addElement(
+            'advcheckbox',
+            'archive_flatten',
+            get_string('task_archive_flatten', 'archivingmod_assign'),
+            get_string('enable'),
+            $this->config->handler->job_preset_archive_flatten_locked ? 'disabled' : null
+        );
+        $this->_form->addHelpButton('archive_flatten', 'task_archive_flatten', 'archivingmod_assign');
+        $this->_form->setDefault('archive_flatten', $this->config->handler->job_preset_archive_flatten);
+
+        // Advanced options: Submission folder name pattern.
+        $this->_form->addElement(
+            'text',
+            'submission_foldername_pattern',
+            get_string('task_submission_foldername_pattern', 'archivingmod_assign'),
+            $this->config->handler->job_preset_submission_foldername_pattern_locked ? 'disabled' : null
+        );
+        $this->_form->addHelpButton(
+            'submission_foldername_pattern',
+            'task_submission_foldername_pattern',
+            'archivingmod_assign',
+            '',
+            false,
+            [
+                'variables' => array_reduce(
+                    submission_filename_variable::values(),
+                    fn($res, $varname) => $res . "<li>" .
+                        "<code>\${" . $varname . "}</code>: " .
+                        get_string('task_submission_filename_pattern_variable_' . $varname, 'archivingmod_assign') .
+                        "</li>",
+                    ""
+                ),
+                'forbiddenchars' => htmlspecialchars(implode('', storage::FOLDERNAME_FORBIDDEN_CHARACTERS)),
+            ]
+        );
+        $this->_form->setType('submission_foldername_pattern', PARAM_TEXT);
+        $this->_form->setDefault('submission_foldername_pattern', $this->config->handler->job_preset_submission_foldername_pattern);
+        $this->_form->addRule('submission_foldername_pattern', null, 'maxlength', 255, 'client');
+        $this->_form->hideIf('submission_foldername_pattern', 'archive_flatten', 'checked');
 
         parent::definition_advanced_settings();
     }
