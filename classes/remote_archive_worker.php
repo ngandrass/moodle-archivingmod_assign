@@ -212,6 +212,7 @@ class remote_archive_worker {
                 "archive_filehashes" => true,
                 "archive_flatten" => (bool) $settings->archive_flatten,
                 "keep_html_files" => (bool) $settings->keep_html_files,
+                "fetch_metadata" => true,
             ],
         ];
     }
