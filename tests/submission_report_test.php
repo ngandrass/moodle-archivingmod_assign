@@ -24,6 +24,7 @@
 
 namespace archivingmod_assign;
 
+use archivingmod_assign\local\type\submission_report_section;
 
 /**
  * Tests for the submission_report class
@@ -37,6 +38,23 @@ final class submission_report_test extends \advanced_testcase {
     // phpcs:ignore
     public static function getDataGenerator(): \archivingmod_assign_generator {
         return parent::getDataGenerator()->get_plugin_generator('archivingmod_assign');
+    }
+
+    /**
+     * PHPUnit test setup hook.
+     *
+     * @return void
+     * @throws \coding_exception
+     */
+    #[\Override]
+    protected function setUp(): void {
+        parent::setUp();
+
+        // mod_assign internals (e.g. assign::get_return_action()) access $PAGE->url and trigger a
+        // debugging() call if it was never set. In production this is set by the calling webservice
+        // (see generate_submission_report::execute()); tests need to set it themselves.
+        global $PAGE;
+        $PAGE->set_url(new \moodle_url('/'));
     }
 
     /**
@@ -122,7 +140,7 @@ final class submission_report_test extends \advanced_testcase {
         $assign = new \assign($ctx, $testdata->cm, $testdata->course);
 
         $report = new submission_report($testdata->course, $testdata->cm, $assign);
-        $html = $report->generate($testdata->submission->id);
+        $html = $report->generate($testdata->submission->id, submission_report_section::cases());
 
         $this->assertStringContainsString(
             $testdata->assignment->name,
@@ -168,7 +186,7 @@ final class submission_report_test extends \advanced_testcase {
         $report = new submission_report($testdata2->course, $testdata2->cm, $assign);
 
         $this->expectException(\moodle_exception::class);
-        $report->generate($testdata1->submission->id);
+        $report->generate($testdata1->submission->id, submission_report_section::cases());
     }
 
     /**
@@ -192,6 +210,7 @@ final class submission_report_test extends \advanced_testcase {
         $report = new submission_report($testdata->course, $testdata->cm, $assign);
         $html = $report->generate_full_page(
             $testdata->submission->id,
+            submission_report_section::cases(),
             false, // We need to disable this since $OUTPUT->header() is not working during tests.
             false, // We need to disable this since $OUTPUT->header() is not working during tests.
             true
@@ -330,5 +349,353 @@ final class submission_report_test extends \advanced_testcase {
 
         $this->expectException(\invalid_parameter_exception::class);
         $report->generate_submission_filename($testdata->submission->id, '${notavariable}', false);
+    }
+
+    /**
+     * Tests generation of a report without the assignment header section
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_header(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::ASSIGNMENT_HEADER,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('openingdate', 'archivingmod_assign'),
+            $html,
+            'Assignment header found when it should be absent'
+        );
+        $this->assertStringContainsString(
+            get_string('submissionstatusheading', 'assign'),
+            $html,
+            'Submission status heading not found'
+        );
+    }
+
+    /**
+     * Tests generation of a report without the assignment instructions section
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_instructions(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::ASSIGNMENT_INSTRUCTIONS,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('activityeditor', 'mod_assign'),
+            $html,
+            'Assignment instructions found when it should be absent'
+        );
+        $this->assertStringContainsString(
+            get_string('openingdate', 'archivingmod_assign'),
+            $html,
+            'Assignment header not found'
+        );
+    }
+
+    /**
+     * Tests generation of a report without the submission section
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_submission(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::SUBMISSION,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('submissionstatusheading', 'assign'),
+            $html,
+            'Submission status heading found when it should be absent'
+        );
+        $this->assertStringNotContainsString(
+            'Test submission text.',
+            $html,
+            'Submission content found when it should be absent'
+        );
+        $this->assertStringNotContainsString(
+            get_string('pluginname', 'assignsubmission_comments'),
+            $html,
+            'Submission comments found when it should be absent'
+        );
+    }
+
+    /**
+     * Tests generation of a report with the submission but without its status
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_submission_status(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::SUBMISSION_STATUS,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('submissionstatusheading', 'assign'),
+            $html,
+            'Submission status heading found when it should be absent'
+        );
+        $this->assertStringContainsString(
+            'Test submission text.',
+            $html,
+            'Submission content not found'
+        );
+    }
+
+    /**
+     * Tests generation of a report with the submission but without its comments
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_submission_comments(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::SUBMISSION_COMMENTS,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('pluginname', 'assignsubmission_comments'),
+            $html,
+            'Submission comments found when it should be absent'
+        );
+        $this->assertStringContainsString(
+            'Test submission text.',
+            $html,
+            'Submission content not found'
+        );
+        $this->assertStringContainsString(
+            get_string('submissionstatusheading', 'assign'),
+            $html,
+            'Submission status heading not found'
+        );
+    }
+
+    /**
+     * Tests generation of a report without the feedback section
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_feedback(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+        $this::getDataGenerator()->grade_submission($testdata);
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::FEEDBACK,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('feedback', 'assign'),
+            $html,
+            'Feedback section found when it should be absent'
+        );
+        $this->assertStringNotContainsString(
+            '>' . get_string('gradenoun') . '<',
+            $html,
+            'Grade found when it should be absent'
+        );
+        $this->assertStringNotContainsString(
+            get_string('gradedby', 'assign'),
+            $html,
+            'Grading details found when they should be absent'
+        );
+    }
+
+    /**
+     * Tests generation of a report with feedback but without feedback comments
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_feedback_comments(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+        $this::getDataGenerator()->grade_submission($testdata);
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::FEEDBACK_COMMENTS,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('pluginname', 'assignfeedback_comments'),
+            $html,
+            'Feedback comments found when they should be absent'
+        );
+        $this->assertStringContainsString(
+            get_string('feedback', 'assign'),
+            $html,
+            'Feedback section not found'
+        );
+        $this->assertStringContainsString(
+            '>' . get_string('gradenoun') . '<',
+            $html,
+            'Grade not found'
+        );
+    }
+
+    /**
+     * Tests generation of a report with feedback but without the grade
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_grade(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+        $this::getDataGenerator()->grade_submission($testdata);
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::GRADE,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            '>' . get_string('gradenoun') . '<',
+            $html,
+            'Grade found when it should be absent'
+        );
+        $this->assertStringContainsString(
+            get_string('gradedby', 'assign'),
+            $html,
+            'Grading details not found'
+        );
+    }
+
+    /**
+     * Tests generation of a report with the grade but without grading details
+     *
+     * @covers \archivingmod_assign\submission_report
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_generate_report_no_grading_details(): void {
+        $this->resetAfterTest();
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+        $this::getDataGenerator()->grade_submission($testdata);
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $report = new submission_report($testdata->course, $testdata->cm, $assign);
+
+        $sections = array_filter(submission_report_section::cases(), fn ($s) => !in_array($s, [
+            submission_report_section::GRADING_DETAILS,
+        ]));
+        $html = $report->generate($testdata->submission->id, $sections);
+        $this->assertNotEmpty($html, 'Generated report is empty');
+
+        $this->assertStringNotContainsString(
+            get_string('gradedby', 'assign'),
+            $html,
+            'Grading details found when they should be absent'
+        );
+        $this->assertStringContainsString(
+            '>' . get_string('gradenoun') . '<',
+            $html,
+            'Grade not found'
+        );
     }
 }
