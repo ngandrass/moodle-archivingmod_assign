@@ -25,6 +25,7 @@
 namespace archivingmod_assign\external;
 
 use archivingmod_assign\local\type\attachment_type;
+use archivingmod_assign\local\type\submission_report_section;
 use archivingmod_assign\local\type\webservice_status;
 
 /**
@@ -56,6 +57,7 @@ final class generate_submission_report_test extends \advanced_testcase {
             'submissionid' => $submissionid,
             'foldernamepattern' => '${username}/${submissionid}-${date}_${time}',
             'filenamepattern' => 'submission-${username}-${submissionid}-${date}_${time}',
+            'sections' => array_fill_keys(submission_report_section::values(), true),
         ];
     }
 
@@ -122,6 +124,7 @@ final class generate_submission_report_test extends \advanced_testcase {
             $r['submissionid'],
             $r['foldernamepattern'],
             $r['filenamepattern'],
+            $r['sections'],
         );
         $this->assertNotSame(
             webservice_status::E_ACCESS_DENIED->name,
@@ -137,6 +140,7 @@ final class generate_submission_report_test extends \advanced_testcase {
             $r['submissionid'],
             $r['foldernamepattern'],
             $r['filenamepattern'],
+            $r['sections'],
         );
         $this->assertSame(
             webservice_status::E_ACCESS_DENIED->name,
@@ -177,12 +181,18 @@ final class generate_submission_report_test extends \advanced_testcase {
             $this->expectException(\invalid_parameter_exception::class);
             $this->expectExceptionMessageMatches('/.*uuid.*/');
         }
+        if ($invalidparameterkey === 'sections') {
+            // Empty array is already detected by Moodle parameter validation so we expect an exception here.
+            $this->expectException(\invalid_parameter_exception::class);
+            $this->expectExceptionMessageMatches('/.*sections.*/');
+        }
         $res = generate_submission_report::execute(
             $invalidparameterkey === 'uuid' ? '<a href="localhost">not-a-uuid</a>' : $r['uuid'],
             $invalidparameterkey === 'taskid' ? 0 : $r['taskid'],
             $invalidparameterkey === 'submissionid' ? 0 : $r['submissionid'],
             $invalidparameterkey === 'foldernamepattern' ? 'invalid-${pattern' : $r['foldernamepattern'],
             $invalidparameterkey === 'filenamepattern' ? 'invalid-${pattern' : $r['filenamepattern'],
+            $invalidparameterkey === 'sections' ? [] : $r['sections'],
         );
         $this->assertNotSame(
             webservice_status::OK->name,
@@ -203,6 +213,7 @@ final class generate_submission_report_test extends \advanced_testcase {
             'Invalid submissionid' => ['submissionid'],
             'Invalid foldernamepattern' => ['foldernamepattern'],
             'Invalid filenamepattern' => ['filenamepattern'],
+            'Invalid sections' => ['sections'],
         ];
     }
 
@@ -240,6 +251,7 @@ final class generate_submission_report_test extends \advanced_testcase {
             $r['submissionid'],
             $r['foldernamepattern'],
             $r['filenamepattern'],
+            $r['sections'],
         );
         $this->assertSame(
             webservice_status::E_SUBMISSION_NOT_FOUND->name,
