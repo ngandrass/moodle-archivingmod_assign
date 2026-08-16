@@ -21,10 +21,14 @@
 
     Example context (json):
     {
+        "sections": {
+            "header": true,
+            "instructions": true
+        },
         "course": {
             "id": 1,
             "name": "My course"
-        ,
+        },
         "assignment": {
             "title": "My assignment",
             "description": "<p>Description of the assignment</p>",
@@ -54,6 +58,7 @@
 
 
 <div class="container-fluid path-mod-assign">
+    {{#sections.header}}
     <div class="row mb-2">
         <div class="col-12 d-flex flex-wrap align-items-center">
             <div class="page-header-image">
@@ -153,14 +158,6 @@
                         <td>{{{ assignment.description }}}</td>
                     </tr>
                     <tr>
-                        <th>{{#str}} activityeditor, mod_assign {{/str}}</th>
-                        <td>{{{ assignment.activityinstructions }}}</td>
-                    </tr>
-                    <tr>
-                        <th>{{#str}} introattachments, mod_assign {{/str}}</th>
-                        <td>{{{ assignment.introattachments }}}</td>
-                    </tr>
-                    <tr>
                         <th>{{#str}} archiving_date, local_archiving {{/str}}</th>
                         <td>
                             {{#userdate}}
@@ -173,14 +170,35 @@
             </table>
         </div>
     </div>
+    {{/sections.header}}
+
+    {{#sections.instructions}}
+    <div class="row mb-2">
+        <div class="col-12">
+            <h3 class="h3">
+                {{#str}} modulename, mod_assign {{/str}}
+            </h3>
+        </div>
+    </div>
 
     <div class="row mb-2">
         <div class="col-12">
             <table class="generaltable table table-striped table-bordered">
-                <tbody>
-                    <tr></tr>
-                </tbody>
+                <tr>
+                    <th>{{#str}} activityeditor, mod_assign {{/str}}</th>
+                    <td>{{{ assignment.activityinstructions }}}</td>
+                </tr>
+                <tr>
+                    <th>{{#str}} introattachments, mod_assign {{/str}}</th>
+                    <td>{{{ assignment.introattachments }}}</td>
+                </tr>
             </table>
+        </div>
+    </div>
+    {{/sections.instructions}}
+
+    <div class="row mb-2">
+        <div class="col-12">
             <div>
                 {{{ submission.report }}}
             </div>

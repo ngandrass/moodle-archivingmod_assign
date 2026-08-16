@@ -25,6 +25,7 @@
 namespace archivingmod_assign;
 
 use archivingmod_assign\local\type\submission_filename_variable;
+use archivingmod_assign\local\type\submission_report_section;
 use core_course\output\activity_icon;
 use local_archiving\local\util\course_util;
 use local_archiving\local\util\report_util;
@@ -75,6 +76,7 @@ class submission_report {
      * Generates a HTML representation of the assignment submission
      *
      * @param int $submissionid ID of the submission this report is for
+     * @param submission_report_section[] $sections Sections to include in the report
      *
      * @return string HTML DOM of the rendered assignment submission report
      *
@@ -82,8 +84,7 @@ class submission_report {
      * @throws \dml_exception
      * @throws \moodle_exception
      */
-    public function generate(int $submissionid): string {
-        // TODO: Conditionally include stuff based on selected sections.
+    public function generate(int $submissionid, array $sections): string {
         global $DB, $OUTPUT;
 
         // Get and validate submission.
@@ -103,6 +104,10 @@ class submission_report {
 
         // Render output.
         return $OUTPUT->render_from_template('archivingmod_assign/submissionreport', [
+            'sections' => [
+                'header' => in_array(submission_report_section::ASSIGNMENT_HEADER, $sections),
+                'instructions' => in_array(submission_report_section::ASSIGNMENT_INSTRUCTIONS, $sections),
+            ],
             'course' => [
                 'id' => $this->course->id,
                 'name' => $this->course->fullname,
@@ -135,10 +140,142 @@ class submission_report {
                         fullname($submittinguser, true) . " (#$submittinguser->id)",
                     )),
                 ],
-                'report' => $this->assignment->view_student_summary($submittinguser, true),
+                'report' => $this->generate_submission_and_feedback_html($submittinguser, $sections),
             ],
             'archivingdate' => time(),
         ]);
+    }
+
+    /**
+     * Generates the HTML representation of the submission.
+     *
+     * This replicates \assign::view_student_summary() but allows fine-grained
+     * control over which parts are included, based on the given sections.
+     *
+     * @param \stdClass $submittinguser User the submission belongs to
+     * @param submission_report_section[] $sections Sections to include in the report
+     * @return string Rendered HTML
+     * @throws \coding_exception
+     * @throws \moodle_exception
+     */
+    protected function generate_submission_and_feedback_html(\stdClass $submittinguser, array $sections): string {
+        /** @var \mod_assign\output\renderer $renderer */
+        $renderer = $this->assignment->get_renderer();
+        $html = '';
+
+        // Submission section.
+        if (in_array(submission_report_section::SUBMISSION, $sections)) {
+            $submissionrenderable = $this->assignment->get_assign_submission_status_renderable($submittinguser, true);
+            $submissionplugins = $submissionrenderable->submissionplugins;
+
+            // Submission status table without plugin contents.
+            if (in_array(submission_report_section::SUBMISSION_STATUS, $sections)) {
+                $submissionrenderable->submissionplugins = [];
+                $html .= $renderer->render($submissionrenderable);
+            }
+
+            // Restore submissionplugins for content sections.
+            $submissionrenderable->submissionplugins = $submissionplugins;
+
+            if (!in_array(submission_report_section::SUBMISSION_COMMENTS, $sections)) {
+                // Drop submission comments plugin if desired.
+                $submissionrenderable->submissionplugins = array_values(array_filter(
+                    $submissionrenderable->submissionplugins,
+                    fn ($plugin) => $plugin->get_type() !== 'comments'
+                ));
+            }
+
+            // Submission content only, without the surrounding status table.
+            $html .= '<h3>' . get_string('submission', 'assign') . '</h3>';
+            $html .= $this->render_submission_plugin_content($renderer, $submissionrenderable);
+            $html .= '<br>';
+        }
+
+        // Feedback section.
+        if (in_array(submission_report_section::FEEDBACK, $sections)) {
+            $feedbackstatusrenderable = $this->assignment->get_assign_feedback_status_renderable($submittinguser);
+            if ($feedbackstatusrenderable) {
+                // Drop the feedback comments plugin unless explicitly requested.
+                if (!in_array(submission_report_section::FEEDBACK_COMMENTS, $sections)) {
+                    $feedbackstatusrenderable->feedbackplugins = array_values(array_filter(
+                        $feedbackstatusrenderable->feedbackplugins,
+                        fn ($plugin) => $plugin->get_type() !== 'comments'
+                    ));
+                }
+
+                // Hide the grade (and its breakdown) unless explicitly requested.
+                if (!in_array(submission_report_section::GRADE, $sections)) {
+                    unset($feedbackstatusrenderable->gradefordisplay);
+                    $feedbackstatusrenderable->gradingcontrollergrade = '';
+                }
+
+                // Hide the grader identity unless explicitly requested.
+                if (!in_array(submission_report_section::GRADING_DETAILS, $sections)) {
+                    $feedbackstatusrenderable->grader = null;
+                }
+
+                $html .= $renderer->render($feedbackstatusrenderable);
+            }
+        }
+
+        return $html;
+    }
+
+    /**
+     * Renders the submission content of all given submission plugins without
+     * the surrounding submission status table.
+     *
+     * This replicates the submission plugin content loop of
+     * \mod_assign\output\renderer::render_assign_submission_status() so that
+     * submission content can be shown independently of the submission status.
+     *
+     * @param \mod_assign\output\renderer $renderer Renderer to use
+     * @param \mod_assign\output\assign_submission_status $status Submission status
+     * renderable to extract plugin content from
+     * @return string Rendered HTML
+     * @throws \coding_exception
+     */
+    protected function render_submission_plugin_content(
+        \mod_assign\output\renderer $renderer,
+        \mod_assign\output\assign_submission_status $status
+    ): string {
+        $submission = $status->teamsubmission ?: $status->submission;
+
+        // Fail early.
+        if (!$submission) {
+            return '';
+        }
+
+        if ($status->teamsubmission && $status->submissiongroup == false && $status->preventsubmissionnotingroup) {
+            return '';
+        }
+
+        // Build table with all submission plugin contents.
+        $table = new \html_table();
+        $table->attributes['class'] = 'generaltable table table-striped table-bordered table-hover';
+
+        foreach ($status->submissionplugins as $plugin) {
+            $pluginshowsummary = !$plugin->is_empty($submission) || !$plugin->allow_submissions();
+            if ($plugin->is_enabled() && $plugin->is_visible() && $plugin->has_user_summary() && $pluginshowsummary) {
+                $table->data[] = new \html_table_row([
+                    new \html_table_cell($plugin->get_name()),
+                    new \html_table_cell($renderer->render(new \assign_submission_plugin_submission(
+                        $plugin,
+                        $submission,
+                        \assign_submission_plugin_submission::SUMMARY,
+                        $status->coursemoduleid,
+                        $status->returnaction,
+                        $status->returnparams
+                    ))),
+                ]);
+            }
+        }
+
+        if (empty($table->data)) {
+            return '';
+        }
+
+        return \html_writer::table($table);
     }
 
     /**
@@ -146,6 +283,7 @@ class submission_report {
      * footer
      *
      * @param int $submissionid ID of the submission this report is for
+     * @param submission_report_section[] $sections Sections to include in the report
      * @param bool $fixrelativeurls If true, all relative URLs will be
      * forcefully mapped to the Moodle base URL
      * @param bool $minimal If true, unneccessary elements (e.g. navbar) are
@@ -162,6 +300,7 @@ class submission_report {
      */
     public function generate_full_page(
         int $submissionid,
+        array $sections,
         bool $fixrelativeurls = true,
         bool $minimal = true,
         bool $inlineimages = true
@@ -176,7 +315,7 @@ class submission_report {
         // Build HTML tree.
         $html = "";
         $html .= $OUTPUT->header();
-        $html .= self::generate($submissionid);
+        $html .= self::generate($submissionid, $sections);
         $html .= $OUTPUT->footer();
 
         // Parse HTML as DOMDocument but supress consistency check warnings.
