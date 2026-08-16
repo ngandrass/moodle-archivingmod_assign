@@ -367,4 +367,40 @@ class archivingmod_assign_generator extends \testing_data_generator {
             $filecontent
         );
     }
+
+    /**
+     * Grades the given submission and adds a feedback comment.
+     *
+     * @param \stdClass $testdata Test data as returned by create_assignment_with_text_submission()
+     * @param float $grade Grade to assign
+     * @param string $feedbackcomment Feedback comment text
+     * @return \stdClass The updated assign_grades record
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function grade_submission(
+        \stdClass $testdata,
+        float $grade = 75.0,
+        string $feedbackcomment = 'Well done.'
+    ): \stdClass {
+        global $DB;
+
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+
+        $gradeobj = $assign->get_user_grade($testdata->student->id, true);
+        $gradeobj->grade = $grade;
+        $gradeobj->grader = $testdata->teacher->id;
+        $assign->update_grade($gradeobj);
+
+        $DB->insert_record('assignfeedback_comments', (object) [
+            'commenttext' => $feedbackcomment,
+            'commentformat' => FORMAT_HTML,
+            'grade' => $gradeobj->id,
+            'assignment' => $testdata->assignment->id,
+        ]);
+
+        return $gradeobj;
+    }
 }
