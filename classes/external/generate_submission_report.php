@@ -31,6 +31,7 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 use archivingmod_assign\assignment_manager;
 use archivingmod_assign\local\type\attachment_type;
 use archivingmod_assign\local\type\submission_filename_variable;
+use archivingmod_assign\local\type\submission_report_section;
 use archivingmod_assign\local\type\webservice_status;
 use core_external\external_api;
 use core_external\external_function_parameters;
@@ -75,6 +76,18 @@ class generate_submission_report extends external_api {
                 PARAM_TEXT,
                 'Filename pattern to use for the generated submission files',
                 VALUE_REQUIRED
+            ),
+            'sections' => new external_single_structure(
+                array_combine(
+                    array_map(fn($section) => $section->value, submission_report_section::cases()),
+                    array_map(fn($section) => new external_value(
+                        PARAM_BOOL,
+                        'Whether to include the ' . $section->name . ' section',
+                        VALUE_REQUIRED
+                    ), submission_report_section::cases())
+                ),
+                'Sections to include in the report',
+                VALUE_REQUIRED,
             ),
         ]);
     }
@@ -158,6 +171,7 @@ class generate_submission_report extends external_api {
      * @param int $submissionidraw ID of the assignment submission
      * @param string $foldernamepatternraw Folder name pattern to use for report name generation
      * @param string $filenamepatternraw Filename pattern to use for report name generation
+     * @param array $sectionsraw Sections to include in the report
      *
      * @return array According to execute_returns()
      *
@@ -172,6 +186,7 @@ class generate_submission_report extends external_api {
         int $submissionidraw,
         string $foldernamepatternraw,
         string $filenamepatternraw,
+        array $sectionsraw,
     ): array {
         global $PAGE;
 
@@ -182,6 +197,7 @@ class generate_submission_report extends external_api {
             'submissionid' => $submissionidraw,
             'foldernamepattern' => $foldernamepatternraw,
             'filenamepattern' => $filenamepatternraw,
+            'sections' => $sectionsraw,
         ]);
 
         // Find the task.
@@ -237,11 +253,22 @@ class generate_submission_report extends external_api {
             'wsfunction' => 'archivingmod_assign_generate_submission_report',
         ]));
 
+        // Parse requested sections.
+        $sections = [];
+        foreach ($params['sections'] as $section => $enabled) {
+            if ($enabled) {
+                if (!$sectiontype = submission_report_section::tryFrom($section)) {
+                    return ['status' => webservice_status::E_INVALID_PARAM->name];
+                }
+                $sections[] = $sectiontype;
+            }
+        }
+
         // Generate submission report and attachments data.
         $report = $manager->submission_report();
         $res = [
             'submissionid' => $params['submissionid'],
-            'report' => $report->generate_full_page($params['submissionid']),
+            'report' => $report->generate_full_page($params['submissionid'], $sections),
             'attachments' => $manager->get_submission_attachments_metadata($params['submissionid']),
         ];
 
