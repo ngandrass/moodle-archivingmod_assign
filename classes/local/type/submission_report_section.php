@@ -75,7 +75,6 @@ enum submission_report_section: string {
      */
     public function dependencies(): array {
         return match ($this) {
-            self::ASSIGNMENT_INSTRUCTIONS => [self::ASSIGNMENT_HEADER],
             self::SUBMISSION_STATUS => [self::SUBMISSION],
             self::SUBMISSION_COMMENTS => [self::SUBMISSION],
             self::FEEDBACK_COMMENTS => [self::FEEDBACK],
