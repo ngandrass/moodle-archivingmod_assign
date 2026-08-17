@@ -151,7 +151,7 @@ class generate_submission_report extends external_api {
                         VALUE_REQUIRED
                     ),
                 ]),
-                'Files attached to the quiz attempt',
+                'Files attached to the assignment submission',
                 VALUE_OPTIONAL
             ),
             'status' => new external_value(
@@ -163,7 +163,7 @@ class generate_submission_report extends external_api {
     }
 
     /**
-     * Generates an attempt submission attempt report as HTML DOM and adds
+     * Generates an submission attempt report as HTML DOM and adds
      * metadata about all files that are attached to the submission.
      *
      * @param string $uuidraw UUID assigned to this task by the worker service

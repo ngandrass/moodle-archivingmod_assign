@@ -100,7 +100,7 @@ final class process_uploaded_artifact_test extends \advanced_testcase {
 
     /**
      * Tests that only web service tokens with access to a task can request
-     * attempt metadata
+     * submission attempt metadata
      *
      * @covers \archivingmod_assign\external\process_uploaded_artifact::execute
      *
@@ -202,7 +202,7 @@ final class process_uploaded_artifact_test extends \advanced_testcase {
         ?int $artifactcount,
         bool $shouldfail
     ): void {
-        // Create mock quiz.
+        // Create mock task.
         $this->resetAfterTest();
         $mocks = $this->getDataGenerator()->create_mock_task();
         $base = $this->generate_valid_request('20000000-0000-0000-0000-000000000000', $mocks->task, 1);

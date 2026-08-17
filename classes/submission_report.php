@@ -45,18 +45,18 @@ class submission_report {
     /**
      * Creates a new assignment submission report renderer
      *
-     * @param \stdClass $course Course this attempt renderer is associated with
+     * @param \stdClass $course Course this submission renderer is associated with
      * @param \cm_info $cm Course module this renderer is associated with
      * @param \assign $assignment Assignment this submission renderer is associated with
      * @throws \dml_exception If no valid assignment can be found for the given course module
      * @throws \moodle_exception If the given course module is not an assignment
      */
     public function __construct(
-        /** @var \stdClass Course this attempt renderer is associated with */
+        /** @var \stdClass Course this submission renderer is associated with */
         protected \stdClass $course,
-        /** @var \cm_info Course module this attempt renderer is associated with */
+        /** @var \cm_info Course module this submission renderer is associated with */
         protected \cm_info $cm,
-        /** @var \assign Assignment this attempt renderer is associated with */
+        /** @var \assign Assignment this submission renderer is associated with */
         protected \assign $assignment
     ) {
         // Check cm.
@@ -308,7 +308,7 @@ class submission_report {
         global $CFG, $OUTPUT, $PAGE;
 
         // Add a assignment archiver specific CSS class to provide a unique CSS selector.
-        // This can be used to add additional styling to the quiz report page accessed by the worker,
+        // This can be used to add additional styling to the submission report page accessed by the worker,
         // for example by specifying additional (s)css in the theme scss setting in the moodle administration.
         $PAGE->add_body_class('assign-archiver-report');
 
