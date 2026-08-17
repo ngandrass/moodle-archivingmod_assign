@@ -33,6 +33,10 @@ use local_archiving\local\type\task_content_metadata;
 // phpcs:ignore
 defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 
+// @codeCoverageIgnoreStart
+require_once($CFG->dirroot . '/mod/assign/locallib.php');
+// @codeCoverageIgnoreEnd
+
 
 /**
  * Assignment activity archiving driver
@@ -100,8 +104,13 @@ class archivingmod extends \local_archiving\local\driver\archivingmod {
     public function can_be_archived(): bool {
         global $DB;
 
-        // Check if assignment has submissions.
-        if (!$DB->record_exists('assign_submission', ['assignment' => $this->assignmentid])) {
+        // Check if assignment has submitted submissions.
+        if (
+            !$DB->record_exists('assign_submission', [
+                'assignment' => $this->assignmentid,
+                'status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
+            ])
+        ) {
             return false;
         }
 
@@ -194,6 +203,7 @@ class archivingmod extends \local_archiving\local\driver\archivingmod {
      * @throws \coding_exception
      * @throws \dml_exception
      */
+    #[\Override]
     public function fingerprint(): cm_state_fingerprint {
         global $DB;
 
