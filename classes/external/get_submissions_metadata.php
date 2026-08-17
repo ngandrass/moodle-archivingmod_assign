@@ -206,7 +206,7 @@ class get_submissions_metadata extends external_api {
 
         // Ensure that we are supposed to handle this task.
         if ($task->get_archivingmodname() !== 'assign') {
-            return ['status' => webservice_status::E_INVALID_PARAM->name];
+            return ['status' => webservice_status::E_TASK_TYPE_INVALID->name];
         }
 
         // Get assignment manager and build response.
