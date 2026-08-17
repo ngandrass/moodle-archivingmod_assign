@@ -18,7 +18,7 @@
  * Privacy provider class for this plugin.
  *
  * @package   archivingmod_assign
- * @copyright 2025 Niels Gandraß <niels@gandrass.de>
+ * @copyright 2026 Niels Gandraß <niels@gandrass.de>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -37,7 +37,6 @@ defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
 class provider implements \core_privacy\local\metadata\null_provider {
     #[\Override]
     public static function get_reason(): string {
-        // TODO (MDL-0): Implement once plugin is taking shape.
         return 'privacy:metadata';
     }
 }
