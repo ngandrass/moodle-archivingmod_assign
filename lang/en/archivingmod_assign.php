@@ -40,6 +40,7 @@ $string['setting_enabled'] = 'Enabled';
 $string['setting_enabled_desc'] = 'Enables or disables this activity archiving driver. If disabled, no activities can be archived using this driver.';
 $string['setting_header_archive_worker'] = 'Archive Worker Service';
 $string['setting_header_archive_worker_desc'] = 'Configuration of the archive worker service and the Moodle web service it uses.';
+$string['setting_header_docs_desc'] = 'This plugin archives assignment submissions. It generates a PDF report for every submission and bundles it together with all supplied files (e.g., submitted files, assignment instructions, annotated PDFs, ...). It <b>requires a separate <a href="https://quizarchiver.gandrass.de/installation/archiveworker/" target="_blank">worker service</a></b> to be installed for the actual archiving process to work. Please refer to the <a href="https://quizarchiver.gandrass.de/" target="_blank">documentation</a> for more details and setup instructions.';
 $string['setting_internal_wwwroot'] = 'Custom Moodle base URL';
 $string['setting_internal_wwwroot_desc'] = 'Overwrites the default Moodle base URL (<code>$CFG->wwwroot</code>) inside generated assignment submission reports. This can be useful if you are running the archiving worker service inside a private network (e.g., Docker) and want it to access Moodle directly.<br/>Example: <code>http://moodle/</code>';
 $string['setting_webservice_enabler'] = 'Moodle web services';

@@ -43,7 +43,7 @@ if ($hassiteconfig) {
         $settings->add(new admin_setting_heading(
             'archivingmod_assign/header_docs',
             null,
-            'TODO: Write something nice here ;)'
+            get_string('setting_header_docs_desc', 'archivingmod_assign')
         ));
 
         // Enabled.
