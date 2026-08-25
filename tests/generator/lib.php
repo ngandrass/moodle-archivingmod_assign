@@ -71,7 +71,36 @@ class archivingmod_assign_generator extends \testing_data_generator {
         $context = \context_module::instance($mocks->cm->id);
 
         // Create archive job and task.
-        $job = archive_job::create($context, get_admin()->id, 'manual', settings: (object) []);
+        $job = archive_job::create($context, get_admin()->id, 'manual', settings: (object) [
+            // Report sections (one key per submission_report_section case).
+            'report_section_header' => 1,
+            'report_section_instructions' => 1,
+            'report_section_submission' => 1,
+            'report_section_submissionstatus' => 1,
+            'report_section_submissioncomments' => 1,
+            'report_section_feedback' => 1,
+            'report_section_feedbackcomments' => 1,
+            'report_section_grade' => 1,
+            'report_section_gradedetails' => 1,
+
+            // Attachments (one key per attachment_type case).
+            'attachment_assignment' => 1,
+            'attachment_submission' => 1,
+            'attachment_feedback' => 1,
+            'attachment_annotation' => 1,
+
+            // Report / rendering settings.
+            'paper_format' => 'A4',
+            'keep_html_files' => 0,
+            'image_optimize' => 1,
+            'image_optimize_width' => 1280,
+            'image_optimize_height' => 1280,
+            'image_optimize_quality' => 85,
+            'archive_filename_pattern' => 'archive-${courseshortname}-${courseid}-${cmtype}-${cmname}-${cmid}_${date}-${time}',
+            'submission_foldername_pattern' => '${username}/${submissionid}-${date}_${time}',
+            'submission_filename_pattern' => 'submission-${username}-${submissionid}-${date}_${time}',
+            'archive_flatten' => 0,
+        ]);
         $task = activity_archiving_task::create(
             $job->get_id(),
             $context,
