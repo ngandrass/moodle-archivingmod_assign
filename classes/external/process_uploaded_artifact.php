@@ -56,7 +56,7 @@ class process_uploaded_artifact extends external_api {
                 VALUE_REQUIRED
             ),
             'taskid' => new external_value(
-                PARAM_TEXT,
+                PARAM_INT,
                 'ID of the task this artifact is associated with',
                 VALUE_REQUIRED
             ),
@@ -177,14 +177,14 @@ class process_uploaded_artifact extends external_api {
             return ['status' => webservice_status::E_TASK_NOT_FOUND->name];
         }
 
-        // Ensure that the task type matches.
-        if ($task->get_archivingmodname() !== 'assign') {
-            return ['status' => webservice_status::E_TASK_TYPE_INVALID->name];
-        }
-
         // Check access rights.
         if ($task->get_webservice_token() !== optional_param('wstoken', null, PARAM_TEXT)) {
             return ['status' => webservice_status::E_ACCESS_DENIED->name];
+        }
+
+        // Ensure that the task type matches.
+        if ($task->get_archivingmodname() !== 'assign') {
+            return ['status' => webservice_status::E_TASK_TYPE_INVALID->name];
         }
 
         // Do not allow uploading of artifacts for finished jobs.

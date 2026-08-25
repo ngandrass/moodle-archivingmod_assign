@@ -384,7 +384,7 @@ final class update_task_status_test extends \advanced_testcase {
 
         // Prepare a new assign archiving task.
         $wstoken = 'TEST-WS-TOKEN-10';
-        $mocks = $this->getDataGenerator()->create_mock_task($wstoken);
+        $mocks = $this->getDataGenerator()->create_mock_task(wstoken: $wstoken);
         $r = $this->generate_valid_request(
             '50000000-0000-0000-0000-0123456789ab',
             $mocks->task->get_id(),
