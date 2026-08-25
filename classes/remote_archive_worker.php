@@ -108,7 +108,7 @@ class remote_archive_worker {
             throw new \moodle_exception('a', 'archivingmod_assign', $data->error);
         }
         foreach (['status', 'queue_len'] as $key) {
-            if (!isset($data[$key])) {
+            if (!isset($data->{$key})) {
                 throw new \moodle_exception('remote_worker_missing_return_param', 'archivingmod_assign', $key);
             }
         }
