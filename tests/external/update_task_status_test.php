@@ -171,7 +171,7 @@ final class update_task_status_test extends \advanced_testcase {
             $r['uuid'],
             $invalidparameterkey == 'taskid' ? 0 : $r['taskid'],
             $invalidparameterkey == 'status' ? 9999 : $r['status'],
-            $invalidparameterkey == 'progress' ? 101 : $r['status']
+            $invalidparameterkey == 'progress' ? 101 : $r['progress']
         );
         $this->assertNotSame(
             webservice_status::OK->name,
