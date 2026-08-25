@@ -19,13 +19,14 @@ use local_archiving\archive_job;
 use local_archiving\local\type\cm_state_fingerprint;
 use local_archiving\local\type\db_table;
 
-// phpcs:ignore
-defined('MOODLE_INTERNAL') || die(); // @codeCoverageIgnore
+// @codeCoverageIgnoreStart
+defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/mod/assign/locallib.php');
 require_once($CFG->dirroot . '/mod/assign/feedback/file/locallib.php');
 require_once($CFG->dirroot . '/mod/assign/feedback/editpdf/locallib.php');
+// @codeCoverageIgnoreEnd
 
 
 /**
