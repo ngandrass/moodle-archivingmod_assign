@@ -50,7 +50,7 @@ final class submission_report_test extends \advanced_testcase {
     protected function setUp(): void {
         parent::setUp();
 
-        // mod_assign internals (e.g. assign::get_return_action()) access $PAGE->url and trigger a
+        // The mod_assign internals (e.g. assign::get_return_action()) access $PAGE->url and trigger a
         // debugging() call if it was never set. In production this is set by the calling webservice
         // (see generate_submission_report::execute()); tests need to set it themselves.
         global $PAGE;
