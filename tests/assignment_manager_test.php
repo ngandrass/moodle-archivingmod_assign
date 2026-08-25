@@ -506,6 +506,70 @@ final class assignment_manager_test extends \advanced_testcase {
     }
 
     /**
+     * Tests that get_submission_attachments_metadata() only returns grader feedback and
+     * annotated files that belong to the requested submission, and never leaks another
+     * student's grader files into the report.
+     *
+     * @covers \archivingmod_assign\assignment_manager
+     *
+     * @return void
+     * @throws \coding_exception
+     * @throws \dml_exception
+     * @throws \moodle_exception
+     */
+    public function test_get_submission_attachments_metadata_does_not_leak_other_students_grader_files(): void {
+        $this->resetAfterTest();
+
+        // Student A with a graded submission and grader feedback/annotated files.
+        $testdata = $this::getDataGenerator()->create_assignment_with_text_submission();
+        $ctx = \context_module::instance($testdata->cm->id);
+        $assign = new \assign($ctx, $testdata->cm, $testdata->course);
+        $this::getDataGenerator()->add_grader_feedback_file($assign, $testdata->student->id, 'feedback_a.pdf');
+        $this::getDataGenerator()->add_grader_annotated_file($assign, $testdata->student->id, 'annotated_a.pdf');
+
+        // Student B, enrolled in the same course, with their own submission and
+        // their own grader feedback/annotated files.
+        $studentb = $this::getDataGenerator()->create_user();
+        $this::getDataGenerator()->enrol_user($studentb->id, $testdata->course->id, 'student');
+
+        /** @var \mod_assign_generator $assigngen */
+        $assigngen = $this::getDataGenerator()->get_plugin_generator('mod_assign');
+        $assigngen->create_submission([
+            'status' => ASSIGN_SUBMISSION_STATUS_SUBMITTED,
+            'onlinetext' => 'Test submission text from student B.',
+            'cmid' => $testdata->assignment->cmid,
+            'userid' => $studentb->id,
+        ]);
+
+        $this::getDataGenerator()->add_grader_feedback_file($assign, $studentb->id, 'feedback_b.pdf');
+        $this::getDataGenerator()->add_grader_annotated_file($assign, $studentb->id, 'annotated_b.pdf');
+
+        // Fetch attachments for student A's submission only.
+        $assignman = new assignment_manager($testdata->course->id, $testdata->cm->id);
+        $attachments = $assignman->get_submission_attachments_metadata($testdata->submission->id);
+
+        $feedbackfiles = array_values(array_filter(
+            $attachments,
+            fn($a) => $a['type'] === attachment_type::GRADER_FEEDBACK_FILE->value
+        ));
+        $annotatedfiles = array_values(array_filter(
+            $attachments,
+            fn($a) => $a['type'] === attachment_type::GRADER_ANNOTATED_FILE->value
+        ));
+
+        // Only student A's own files must be present.
+        $this->assertCount(1, $feedbackfiles);
+        $this->assertEquals('feedback_a.pdf', $feedbackfiles[0]['filename']);
+        $this->assertCount(1, $annotatedfiles);
+        $this->assertEquals('annotated_a.pdf', $annotatedfiles[0]['filename']);
+
+        // Student B's files must never leak into student A's report.
+        $filenames = array_column($attachments, 'filename');
+        $this->assertNotContains('feedback_b.pdf', $filenames);
+        $this->assertNotContains('annotated_b.pdf', $filenames);
+    }
+
+    /**
      * Tests that get_submission_attachments_metadata() returns entries for all attachment types
      * when a fully-featured submission with all plugins enabled is present.
      *

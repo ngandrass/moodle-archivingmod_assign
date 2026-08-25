@@ -260,8 +260,10 @@ class assignment_manager {
         $grades = $DB->get_records_sql("
             SELECT g.id
             FROM {assign_grades} g
-                JOIN {assign} a ON g.assignment =  a.id
-                JOIN {assign_submission} s ON a.id = s.assignment
+                JOIN {assign_submission} s
+                    ON g.assignment = s.assignment
+                   AND g.userid = s.userid
+                   AND g.attemptnumber = s.attemptnumber
             WHERE s.id = :submissionid
         ", ['submissionid' => $submissionid]);
 
