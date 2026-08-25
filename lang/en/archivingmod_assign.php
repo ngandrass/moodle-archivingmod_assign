@@ -25,6 +25,7 @@
 
 // @codingStandardsIgnoreFile
 
+$string['a'] = '{$a}';
 $string['cutoffdate'] = 'Cut-off date';
 $string['duedate'] = 'Due date';
 $string['error_invalid_submission_filename_pattern'] = 'Invalid submission report filename pattern. Please correct your input and try again.';
